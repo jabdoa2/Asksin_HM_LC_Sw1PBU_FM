@@ -52,10 +52,10 @@ class CC {
 	//private://-------------------------------------------------------------------------------------------------------------
 	// Hardware definition
 	#define PORT_SPI_MISO            PINB
-	#define BIT_SPI_MISO             4
+	#define BIT_SPI_MISO             6
 	#define PORT_SPI_SS              PORTB
-	#define BIT_SPI_SS               2
-	#define GDO0                     2
+	#define BIT_SPI_SS               4
+//	#define GDO0                     2
 
 	#define CC1101_DATA_LEN			 60
 
@@ -237,7 +237,7 @@ class HM {
 	// hardware definition for interrupt handling
 	#define GDO0	            2
 	#define PORT_GDO0           PIND
-	#define BIT_GDO0            2
+//	#define BIT_GDO0            2
 	#define INT_GDO0            0
 
 	#define enableIRQ_GDO0()    attachInterrupt(INT_GDO0, isrGDO0event, FALLING);
@@ -540,8 +540,8 @@ struct s_pci {
 	uint8_t	 nbr;
 	uint16_t idx[maxInt];
 	BK      *ptr[maxInt];
-	uint8_t *pAddr[3];
-	uint8_t  lPort[3];
+	uint8_t *pAddr[4];
+	uint8_t  lPort[4];
 } static pci;
 void pcInt(uint8_t iPort);
 static volatile uint8_t wd_flag;
@@ -549,6 +549,6 @@ ISR( WDT_vect );
 ISR(PCINT0_vect);
 ISR(PCINT1_vect);
 ISR(PCINT2_vect);
-
+ISR(PCINT3_vect);
 
 

@@ -920,14 +920,14 @@ void HM::power_poll(void) {
 
 		sleep_enable();															// enable the sleep mode
 		
-		MCUCR |= (1<<BODS) | (1<<BODSE);										// turn off brown-out enable in software
-		MCUCR &= ~(1<<BODSE);													// must be done right before sleep
+//		MCUCR |= (1<<BODS) | (1<<BODSE);										// turn off brown-out enable in software
+//		MCUCR &= ~(1<<BODSE);													// must be done right before sleep
 		sleep_cpu();															// goto sleep
 
 		/* wake up here */
 		
 		sleep_disable();														// disable sleep
-		WDTCSR &= ~(1<<WDIE);													// disable watch dog
+		if ((powr.mode == 2) || (powr.mode == 3)) WDTCSR &= ~(1<<WDIE);													// disable watch dog
 		PRR = xPrr;																// restore modules
 		
 		if (wd_flag == 1) {														// add the watchdog time to millis()
@@ -1837,9 +1837,9 @@ void BK::config(uint8_t Cnl, uint8_t Pin, uint16_t TimeOutShortDbl, uint16_t Lon
 	*pcmsk |= (1 << digitalPinToPCMSKbit(Pin));
 
 	// load the respective pin register to mask out in interrupt routine
-	uint8_t pinPort = digitalPinToPort(Pin)-2;									// get the respective port to the given pin
-	pci.lPort[pinPort] = *portInputRegister(pinPort+2) & *pcmsk;				// store the port input byte for later comparison
-	pci.pAddr[pinPort] = (uint8_t*)portInputRegister(pinPort+2);				// store the address of the port input register to avoid PGM read in the interrupt
+	uint8_t pinPort = digitalPinToPort(Pin)-1;									// get the respective port to the given pin
+	pci.lPort[pinPort] = *portInputRegister(pinPort+1) & *pcmsk;				// store the port input byte for later comparison
+	pci.pAddr[pinPort] = (uint8_t*)portInputRegister(pinPort+1);				// store the address of the port input register to avoid PGM read in the interrupt
 	
 	// set index and call back address for interrupt handling
 	idx = Cnl;																	// set the index in the interrupt array
@@ -2350,6 +2350,7 @@ void pcInt(uint8_t iPort) {
 	if (iPort == 0) pcMskByte = PCMSK0;
 	if (iPort == 1) pcMskByte = PCMSK1;
 	if (iPort == 2) pcMskByte = PCMSK2;
+	if (iPort == 3) pcMskByte = PCMSK3;
 
 	// find the changed pin by getting the pin states for the indicated port, comparing with the stored byte of the port and setting the port byte for the next try
 	uint8_t cur = *pci.pAddr[iPort] & pcMskByte;								// get the input byte
@@ -2384,4 +2385,7 @@ ISR(PCINT1_vect) {
 }
 ISR(PCINT2_vect) {
 	pcInt(2);
+}
+ISR(PCINT3_vect) {
+	pcInt(3);
 }

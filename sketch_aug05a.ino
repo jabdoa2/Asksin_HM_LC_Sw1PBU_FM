@@ -69,12 +69,14 @@ void setup() {
 
 	// init HM module
 	hm.init();																	// initialize HM module
-	hm.ld.config(4);															// configure the status led pin
+	hm.ld.config(0);															// configure the status led pin
 	hm.setPowerMode(0);															// power mode for HM device
 	hm.setConfigEvent();														// reread config 
 
-	// init the configure button
-	bk[0].config(0,8,0,5000,5000,&buttonState);									// button 0 for channel 0 for send pairing string, and double press for reseting device config - config(tIdx, tPin, tTimeOutShortDbl, tLongKeyTime, tTimeOutLongDdbl, tCallBack)
+	// configure some buttons - config(tIdx, tPin, tTimeOutShortDbl, tLongKeyTime, tTimeOutLongDdbl, tCallBack)
+	bk[0].config(0,15,0,5000,5000,buttonState);									// button 0 for channel 0 for send pairing string, and double press for reseting device config
+	bk[1].config(1,14,(regMC.ch1.l1.dblPress*100),300+(regMC.ch1.l1.longPress*100),1000,buttonState); // channel 1 to 6 as push button
+	bk[2].config(2,8,(regMC.ch2.l1.dblPress*100),300+(regMC.ch2.l1.longPress*100),1000,buttonState);
 
 	// init relay stuff
 	rl[0].config(1,0,3,0,0,0);													// configure the relay to monostable, on pin 3
@@ -173,6 +175,8 @@ void HM_Sensor_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 }
 void HM_Config_Changed(uint8_t cnl, uint8_t *data, uint8_t len) {
 	Serial << F("config changed\n");
+
+
 }
 
 
