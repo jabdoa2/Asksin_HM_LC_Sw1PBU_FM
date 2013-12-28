@@ -46,7 +46,7 @@ class CC {
 	boolean sendData(uint8_t *buf, uint8_t burst);								// send data packet via RF
 	uint8_t receiveData(uint8_t *buf);											// read data packet from RX FIFO
 	uint8_t detectBurst(void);													// detect burst signal, sleep while no signal, otherwise stay awake
-	void    setPowerDownState(void);											// put CC1101 into power-down state
+	void    setPowerDownxtStatte(void);											// put CC1101 into power-down state
 	uint8_t monitorStatus(void);
 
 	//private://-------------------------------------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ class CC {
 	#define CC1101_FREQEST           0x32										// frequency offset estimate from demodulator
 	#define CC1101_LQI               0x33										// demodulator estimate for Link Quality
 	#define CC1101_RSSI              0x34										// received signal strength indication
-	#define CC1101_MARCSTATE         0x35										// main radio control state machine state
+	#define CC1101_MARcurStatTE         0x35										// main radio control state machine state
 	#define CC1101_WORTIME1          0x36										// high byte of WOR Time
 	#define CC1101_WORTIME0          0x37										// low byte of WOR Time
 	#define CC1101_PKTSTATUS         0x38										// current GDOx status and packet status
@@ -100,29 +100,29 @@ class CC {
 	#define CC1101_RCCTRL1_STATUS    0x3C										// last RC oscillator calibration result
 	#define CC1101_RCCTRL0_STATUS    0x3D										// last RC oscillator calibration result
 
-	#define MARCSTATE_SLEEP          0x00
-	#define MARCSTATE_IDLE           0x01
-	#define MARCSTATE_XOFF           0x02
-	#define MARCSTATE_VCOON_MC       0x03
-	#define MARCSTATE_REGON_MC       0x04
-	#define MARCSTATE_MANCAL         0x05
-	#define MARCSTATE_VCOON          0x06
-	#define MARCSTATE_REGON          0x07
-	#define MARCSTATE_STARTCAL       0x08
-	#define MARCSTATE_BWBOOST        0x09
-	#define MARCSTATE_FS_LOCK        0x0A
-	#define MARCSTATE_IFADCON        0x0B
-	#define MARCSTATE_ENDCAL         0x0C
-	#define MARCSTATE_RX             0x0D
-	#define MARCSTATE_RX_END         0x0E
-	#define MARCSTATE_RX_RST         0x0F
-	#define MARCSTATE_TXRX_SWITCH    0x10
-	#define MARCSTATE_RXFIFO_OFLOW   0x11
-	#define MARCSTATE_FSTXON         0x12
-	#define MARCSTATE_TX             0x13
-	#define MARCSTATE_TX_END         0x14
-	#define MARCSTATE_RXTX_SWITCH    0x15
-	#define MARCSTATE_TXFIFO_UFLOW   0x16
+	#define MARcurStatTE_SLEEP          0x00
+	#define MARcurStatTE_IDLE           0x01
+	#define MARcurStatTE_XOFF           0x02
+	#define MARcurStatTE_VCOON_MC       0x03
+	#define MARcurStatTE_REGON_MC       0x04
+	#define MARcurStatTE_MANCAL         0x05
+	#define MARcurStatTE_VCOON          0x06
+	#define MARcurStatTE_REGON          0x07
+	#define MARcurStatTE_STARTCAL       0x08
+	#define MARcurStatTE_BWBOOST        0x09
+	#define MARcurStatTE_FS_LOCK        0x0A
+	#define MARcurStatTE_IFADCON        0x0B
+	#define MARcurStatTE_ENDCAL         0x0C
+	#define MARcurStatTE_RX             0x0D
+	#define MARcurStatTE_RX_END         0x0E
+	#define MARcurStatTE_RX_RST         0x0F
+	#define MARcurStatTE_TXRX_SWITCH    0x10
+	#define MARcurStatTE_RXFIFO_OFLOW   0x11
+	#define MARcurStatTE_FSTXON         0x12
+	#define MARcurStatTE_TX             0x13
+	#define MARcurStatTE_TX_END         0x14
+	#define MARcurStatTE_RXTX_SWITCH    0x15
+	#define MARcurStatTE_TXFIFO_UFLOW   0x16
 
 
 	#define PA_LowPower              0x03										// PATABLE values
@@ -183,7 +183,7 @@ class HM {
 	
 	#define send_payLoad		(send.data + 10)								// payload for send queue
 	#define recv_payLoad		(recv.data + 10)								// payload for receive queue
-	
+
 	struct s_send {																// send queue structure
 		uint8_t  data[60];														// buffer for send string
 		uint8_t  mCnt;															// message counter
@@ -222,7 +222,7 @@ class HM {
 
 	// external functions for pairing and communicating with the module
 	void startPairing(void);													// OK, start pairing with master
-	void sendInfoActuatorStatus(uint8_t cnl, uint8_t status);					// OK, send status function
+	void sendInfoActuatorStatus(uint8_t cnl, uint8_t status, uint8_t flag);		// OK, send status function
 	void sendACKStatus(uint8_t cnl, uint8_t status, uint8_t douolo);			// OK, send ACK with status
 	void sendPeerREMOTE(uint8_t button, uint8_t longPress, uint8_t lowBat);		// (0x40) send REMOTE event to all peers
 	void sendPeerRAW(uint8_t cnl, uint8_t type, uint8_t *data, uint8_t len);	// send event to all peers listed in the peers database by channel, type specifies the type of the message, data and len delivers the content of the event
@@ -304,7 +304,7 @@ class HM {
 	void recv_ConfigStatusReq(void);											// 01, 0E
 	void recv_PeerEvent(void);													// OK, 40
 	void recv_PairEvent(void);													// 11
-	uint8_t recv_Jump(void);													// check against jump table to call function in user area, 1 if call was done, 0 if not
+	uint8_t recv_Jump(uint8_t tCnl);											// check against jump table to call function in user area, 1 if call was done, 0 if not
 	
 	// internal send functions
 	void send_prep(uint8_t msgCnt, uint8_t comBits, uint8_t msgType, uint8_t *targetID, uint8_t *payLoad, uint8_t payLen);
@@ -373,12 +373,12 @@ class BK {
 	uint8_t  cStat :1;															// current status of the button
 	uint32_t cTime;																// stores the next time to check, otherwise we would check every cycle
 
-	void   config(uint8_t tIdx, uint8_t tPin, uint16_t tTimeOutShortDbl, uint16_t tLongKeyTime, uint16_t tTimeOutLongDdbl, void tCallBack(uint8_t, uint8_t));
+	void   config(uint8_t Cnl, uint8_t Pin, uint16_t TimeOutShortDbl, uint16_t LongKeyTime, uint16_t TimeOutLongDdbl, void tCallBack(uint8_t, uint8_t));
 	void   poll(void);
 
 	private://-------------------------------------------------------------------------------------------------------------
 	uint16_t toShDbl;															// minimum time to be recognized as a short key press
-	uint16_t longKeyTime;														// time key should be pressed to be recognized as a long key press
+	uint16_t lngKeyTme;															// time key should be pressed to be recognized as a long key press
 	uint16_t toLoDbl;															// maximum time between a double key press
 	void (*callBack)(uint8_t, uint8_t);											// call back address for key display
 
@@ -391,8 +391,93 @@ class BK {
 	uint8_t  rptLo :1;															// remember long key press to indicate repeated long, or when long was released
 	uint32_t kTime;																// stores time when the key was pressed or released
 
-	void   poll1(void);															// internal polling function for all instances
+	void   poll_btn(void);														// internal polling function for all inxtStatnces
 };
+
+//- -----------------------------------------------------------------------------------------------------------------------
+//- relay functions -------------------------------------------------------------------------------------------------------
+//- -----------------------------------------------------------------------------------------------------------------------
+class RL {
+	public://--------------------------------------------------------------------------------------------------------------
+	void    config(uint8_t cnl, uint8_t type, uint8_t pinOn1, uint8_t pinOn2, uint8_t pinOff1, uint8_t pinOff2);
+	void    setCallBack(void msgCallBack(uint8_t, uint8_t, uint8_t), HM *statCallBack, uint8_t minDelay, uint8_t randomDelay);
+
+	void    trigger11(uint8_t val, uint8_t *rampTime, uint8_t *duraTime);		// FHEM event
+	void    trigger41(uint8_t lngIn, uint8_t val, void *list3);					// sensor event called
+	void    trigger40(uint8_t lngIn, uint8_t cnt, void *plist3);				// remote event called
+	void    sendStatus(void);													// answer on a status request
+
+	void    poll(void);															// poll handler
+
+	private://-------------------------------------------------------------------------------------------------------------
+	struct s_srly {
+		uint8_t shCtDlyOn           :4;
+		uint8_t shCtDlyOff          :4;
+		uint8_t shCtOn              :4;
+		uint8_t shCtOff             :4;
+		uint8_t shCtValLo;
+		uint8_t shCtValHi;
+		uint8_t shOnDly;
+		uint8_t shOnTime;
+		uint8_t shOffDly;
+		uint8_t shOffTime;
+		uint8_t shActionType        :2;
+		uint8_t                     :4;
+		uint8_t shOffTimeMode       :1;
+		uint8_t shOnTimeMode        :1;
+		uint8_t shSwJtOn            :4;
+		uint8_t shSwJtOff           :4;
+		uint8_t shSwJtDlyOn         :4;
+		uint8_t shSwJtDlyOff        :4;
+		uint8_t lgCtDlyOn           :4;
+		uint8_t lgCtDlyOff          :4;
+		uint8_t lgCtOn              :4;
+		uint8_t lgCtOff             :4;
+		uint8_t lgCtValLo;
+		uint8_t lgCtValHi;
+		uint8_t lgOnDly;
+		uint8_t lgOnTime;
+		uint8_t lgOffDly;
+		uint8_t lgOffTime;
+		uint8_t lgActionType        :2;
+		uint8_t                     :3;
+		uint8_t lgMultiExec         :1;
+		uint8_t lgOffTimeMode       :1;
+		uint8_t lgOnTimeMode        :1;
+		uint8_t lgSwJtOn            :4;
+		uint8_t lgSwJtOff           :4;
+		uint8_t lgSwJtDlyOn         :4;
+		uint8_t lgSwJtDlyOff        :4;
+	};
+	
+	s_srly *srly;
+	uint8_t curStat:4, nxtStat:4;												// current state and next state
+	uint8_t OnDly, OnTime, OffDly, OffTime;										// trigger 40/41 timer variables
+	uint8_t lastTrig;															// store for the last trigger
+	uint16_t rTime, dTime;														// trigger 11 timer variables
+	uint32_t rlyTime;															// timer for poll routine
+
+	uint8_t mDel, rDel;															// store for the call back delay
+	void (*cbM)(uint8_t, uint8_t, uint8_t);										// call back address for state change
+	HM (*cbS);																	// call back for status message sending
+	uint32_t cbsTme;															// timer for call back poll routine	
+
+	uint8_t hwType:1;															// 0 indicates a monostable, 1 a bistable relay
+	uint8_t cnlAss:6;															// remembers channel for the inxtStatnce
+	uint8_t hwPin[4];															// first 2 bytes for on, second two for off
+
+	void    adjRly(uint8_t tValue);												// set the physical status of the relay
+	uint8_t getRly(void);														// get the status of the relay
+	uint8_t getStat(void);														// get the status of the module
+
+	void    poll_rly(void);														// polling function for delay and so on
+	void    poll_cbd(void);														// polling function for call back delay
+};
+#define maxRelay 10
+struct s_prl {
+	uint8_t nbr;
+	RL *ptr[maxRelay];
+}static prl;
 
 //- -----------------------------------------------------------------------------------------------------------------------
 //- serial parser and display functions -----------------------------------------------------------------------------------
@@ -438,6 +523,9 @@ void showPGMText(PGM_P s);
 //- additional helpers ----------------------------------------------------------------------------------------------------
 //- -----------------------------------------------------------------------------------------------------------------------
 uint16_t freeMemory(void);
+uint32_t byteTimeCvt(uint8_t tTime);
+uint8_t  int2ByteTimeCvt(uint16_t tTime);
+uint32_t intTimeCvt(uint16_t iTime);
 template<class T> inline Print &operator <<(Print &obj, T arg) { obj.print(arg); return obj; }
 
 //- serial print functions

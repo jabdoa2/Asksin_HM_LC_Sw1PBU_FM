@@ -79,7 +79,7 @@ void CC::init(void) {															// initialize CC1101
 	#endif
 
 	cmdStrobe(CC1101_SCAL);														// calibrate frequency synthesizer and turn it off
-	while (readReg(CC1101_MARCSTATE, CC1101_STATUS) != 1) {						// waits until module gets ready
+	while (readReg(CC1101_MARcurStatTE, CC1101_STATUS) != 1) {						// waits until module gets ready
 		delayMicroseconds(1);
 		#if defined(CC_DBG)
 		Serial << '.';
@@ -126,9 +126,9 @@ boolean CC::sendData(uint8_t *buf, uint8_t burst) {								// send data packet v
 	cmdStrobe(CC1101_STX);														// send a burst
 
 	for(uint8_t i=0; i< 200;++i) {												// after sending out all bytes the chip should go automatically in RX mode
-		if( readReg(CC1101_MARCSTATE, CC1101_STATUS) == MARCSTATE_RX)
+		if( readReg(CC1101_MARcurStatTE, CC1101_STATUS) == MARcurStatTE_RX)
 			break;																//now in RX mode, good
-		if( readReg(CC1101_MARCSTATE, CC1101_STATUS) != MARCSTATE_TX) {
+		if( readReg(CC1101_MARcurStatTE, CC1101_STATUS) != MARcurStatTE_TX) {
 			break;																//neither in RX nor TX, probably some error
 		}
 		delayMicroseconds(10);
@@ -207,7 +207,7 @@ uint8_t CC::detectBurst(void) {													// wake up CC1101 from power down st
 	//Serial << "rx\n";
 	return bitRead(hm.cc.monitorStatus(),6);									// return the detected signal
 }
-void CC::setPowerDownState() {													// put CC1101 into power-down state
+void CC::setPowerDownxtStatte() {													// put CC1101 into power-down state
 	cmdStrobe(CC1101_SIDLE);													// coming from RX state, we need to enter the IDLE state first
 	cmdStrobe(CC1101_SFRX);
 	cmdStrobe(CC1101_SPWD);														// enter power down state
@@ -364,8 +364,6 @@ void HM::poll() {																// task scheduler
 	if (pevt.act > 0) send_peer_poll();											// send peer events
 	power_poll();
 	ld.poll();
-	// to do: power saving tracker
-	//cc1101.setPowerDownState();
 }
 void HM::send_out() {
 	if (bitRead(send.data[2],5)) send.retries = maxRetries;						// check for ACK request and set max retries counter
@@ -384,7 +382,7 @@ void HM::send_out() {
 void HM::reset(void) {
 	setEEpromBlock((uint16_t)&ee->magNbr,2,broadCast);							// clear magic byte in eeprom and step in initRegisters
 	initRegisters();															// reload the registers
-	ld.set(0);																	// stop blinking
+	ld.stop();																	// stop blinking
 	ld.shortBlink3();															// blink three times short
 }
 void HM::setConfigEvent(void) {
@@ -470,11 +468,11 @@ void HM::stayAwake(uint32_t xMillis) {
 void HM::startPairing(void) {													// send a pairing request to master
 	//                               01 02    03                            04 05 06 07
 	// 1A 00 A2 00 3F A6 5C 00 00 00 10 80 02 50 53 30 30 30 30 30 30 30 31 9F 04 01 01
-	stayAwake(powr.parTO);														// stay awake for the next 30 seconds
+	if (powr.mode > 1) stayAwake(powr.parTO);									// stay awake for the next 30 seconds
 	memcpy_P(send_payLoad, devParam, 17);										// copy details out of register.h
 	send_prep(send.mCnt++,0xA2,0x00,regDev.pairCentral,send_payLoad,17);
 }
-void HM::sendInfoActuatorStatus(uint8_t cnl, uint8_t status) {
+void HM::sendInfoActuatorStatus(uint8_t cnl, uint8_t status, uint8_t flag) {
 	if (memcmp(regDev.pairCentral,broadCast,3) == 0) return;					// not paired, nothing to send
 
 //	"10;p01=06"   => { txt => "INFO_ACTUATOR_STATUS", params => {
@@ -485,7 +483,7 @@ void HM::sendInfoActuatorStatus(uint8_t cnl, uint8_t status) {
 	send_payLoad[0] = 0x06;														// INFO_ACTUATOR_STATUS
 	send_payLoad[1] = cnl;														// channel
 	send_payLoad[2] = status;													// status
-	send_payLoad[3] = 0x00;														// unknown
+	send_payLoad[3] = flag;														// unknown
 	send_payLoad[4] = cc.trx868.rssi;											// RSSI
 	
 	// if it is an answer to a CONFIG_STATUS_REQUEST we have to use the same message id as the request 
@@ -495,7 +493,7 @@ void HM::sendInfoActuatorStatus(uint8_t cnl, uint8_t status) {
 	send_prep(tCnt,0xA4,0x10,regDev.pairCentral,send_payLoad,5);				// prepare the message
 }
 void HM::sendACKStatus(uint8_t cnl, uint8_t status, uint8_t douolo) {
-	if (memcmp(regDev.pairCentral,broadCast,3) == 0) return;					// not paired, nothing to send
+	//if (memcmp(regDev.pairCentral,broadCast,3) == 0) return;					// not paired, nothing to send
 
 //	"02;p01=01"   => { txt => "ACK_STATUS",  params => {
 //		CHANNEL        => "02,2",
@@ -511,7 +509,8 @@ void HM::sendACKStatus(uint8_t cnl, uint8_t status, uint8_t douolo) {
 	send_payLoad[4] = cc.trx868.rssi;											// RSSI
 	
 	// l> 0E EA 80 02 1F B7 4A 63 19 63 01 01 C8 00 4B
-	send_prep(recv_rCnt,0x80,0x02,regDev.pairCentral,send_payLoad,5);	// prepare the message
+	//send_prep(recv_rCnt,0x80,0x02,regDev.pairCentral,send_payLoad,5);	// prepare the message
+	send_prep(recv_rCnt,0x80,0x02,recv_reID,send_payLoad,5);					// prepare the message
 }
 void HM::sendPeerREMOTE(uint8_t button, uint8_t longPress, uint8_t lowBat) {
 	// no data needed, because it is a (40)REMOTE EVENT
@@ -780,6 +779,7 @@ void HM::send_conf_poll(void) {
 		//                               RegL_01:  30:06 32:50 34:4B 35:50 56:00 57:24 58:01 59:01 00:00
 		// l> 1A 04 A0 10  1E 7A AD  63 19 63  02  30 06 32 50 34 4B 35 50 56 00 57 24 58 01 59 01 (l:27)(131405)
 	
+		//Serial << "hab dich\n";
 		len = getListForMsg2(conf.channel, conf.list, conf.peer, send_payLoad+1); // get the message
 		if (len == 0) {															// check if all done
 			memset(&conf, 0, sizeof(conf));										// clear the channel struct
@@ -885,13 +885,6 @@ void HM::power_poll(void) {
 	if (powr.nxtTO > millis()) return;											// no need to do anything
 	if (send.counter > 0) return;												// send queue not empty
 	
-	// power mode 2, module is active and next check is reached
-	if ((powr.mode == 2) && (powr.state == 1)) {
-		cc.setPowerDownState();													// go to sleep
-		powr.state = 0;
-		powr.nxtTO = millis() + 250;											// schedule next check in 250 ms
-	} 
-	
 	// power mode 2, module is in sleep and next check is reached
 	if ((powr.mode == 2) && (powr.state == 0)) {
 		if (cc.detectBurst()) {													// check for a burst signal, if we have one, we should stay awake
@@ -900,11 +893,19 @@ void HM::power_poll(void) {
 			powr.nxtTO = millis();												// set timer accordingly	
 		}
 		powr.state = 1;															// set status to awake
+		return;
+	}
+
+	// power mode 2, module is active and next check is reached
+	if ((powr.mode == 2) && (powr.state == 1)) {
+		cc.setPowerDownxtStatte();													// go to sleep
+		powr.state = 0;
+		powr.nxtTO = millis() + 250;											// schedule next check in 250 ms
 	}
 
 	// 	power mode 3, check RX mode against timer. typically RX is off beside a special command to switch RX on for at least 30 seconds
 	if ((powr.mode >= 3) && (powr.state == 1)) {
-		cc.setPowerDownState();													// go to sleep
+		cc.setPowerDownxtStatte();													// go to sleep
 		powr.state = 0;
 	}
 
@@ -1084,11 +1085,11 @@ void HM::recv_ConfigStatusReq(void) {
 	// l> 0B 30 A0 01 63 19 63 2F B7 4A  01  0E 
 
 	// do something with the information ----------------------------------
-	uint8_t ret = recv_Jump();
+	uint8_t ret = recv_Jump(0);
 
 	// send appropriate answer ---------------------------------------------
 	// answer will be send from client function; if client function was not found in jump table, we send here an empty status
-	if (!ret) hm.sendInfoActuatorStatus(recv_payLoad[0], 0xff);
+	if (!ret) hm.sendInfoActuatorStatus(recv_payLoad[0], 0xff, 0);
 }
 void HM::recv_PeerEvent(void) {
 	// description --------------------------------------------------------
@@ -1104,10 +1105,11 @@ void HM::recv_PeerEvent(void) {
 	if (!cnl) return;															// if peer was not found, the function returns a 0 and we can leave
 
 	getList3ByPeer(cnl, peer);													// load list3
-	recv_Jump();																// jump in user function, we do not need to check, because answer is an ACK
+	recv_Jump(cnl);																// jump in user function, we do not need to check, because answer is an ACK
 	
 	// send appropriate answer ---------------------------------------------
-	if (recv_ackRq) send_ACK();													// send ACK if requested
+	// answer should be initiated by client function in user area
+	// if (recv_ackRq) send_ACK();												// send ACK if requested
 }
 void HM::recv_PairEvent(void) {
 	// description --------------------------------------------------------
@@ -1117,13 +1119,13 @@ void HM::recv_PairEvent(void) {
 	// <- 0E E7 80 02 1F B7 4A 63 19 63 01 01 C8 00 54
 	
 	// do something with the information ----------------------------------
-	uint8_t ret = recv_Jump();													// jump in user function, if no answer from user function, we send a blank status answer
+	uint8_t ret = recv_Jump(0);													// jump in user function, if no answer from user function, we send a blank status answer
 	
 	
 	// send appropriate answer ---------------------------------------------
 	// answer should be initiated by client function in user area
 }
-uint8_t HM::recv_Jump(void) {
+uint8_t HM::recv_Jump(uint8_t tCnl) {
 	s_jumptable x;
 
 	for (s_jumptable* p = jTblPtr; ; ++p) {										// find the call back function
@@ -1150,7 +1152,7 @@ uint8_t HM::recv_Jump(void) {
 			x.fun(recv_payLoad[1], recv_payLoad+2, recv_len - 11);				// and jump into
 			return 1;
 		} else if ((recv_msgTp >= 0x12) && (recv_msgTp == x.code)) {
-			x.fun(recv_payLoad[0], recv_payLoad+1, recv_len - 10);				// and jump into
+			x.fun(tCnl, recv_payLoad, recv_len - 9);							// and jump into
 			return 1;
 		}
 		if (x.code == 0) break;													// break if on end of list
@@ -1810,17 +1812,17 @@ void HM::setEEpromBlock(uint16_t addr,uint8_t len,void *ptr) {
 //- -----------------------------------------------------------------------------------------------------------------------
 //- button key functions ---------------------------------------------------------------------------------------------
 //- -----------------------------------------------------------------------------------------------------------------------
-void BK::config(uint8_t tIdx, uint8_t tPin, uint16_t tTimeOutShortDbl, uint16_t tLongKeyTime, uint16_t tTimeOutLongDdbl, void tCallBack(uint8_t, uint8_t)) {
+void BK::config(uint8_t Cnl, uint8_t Pin, uint16_t TimeOutShortDbl, uint16_t LongKeyTime, uint16_t TimeOutLongDdbl, void tCallBack(uint8_t, uint8_t)) {
 
 	// settings while setup
-	pinMode(tPin, INPUT_PULLUP);												// setting the pin to input mode
-	toShDbl = tTimeOutShortDbl;													// minimum time to be recognized as a short key press
-	longKeyTime  = tLongKeyTime;												// time key should be pressed to be recognized as a long key press
-	toLoDbl = tTimeOutLongDdbl;													// maximum time between a double key press
+	pinMode(Pin, INPUT_PULLUP);													// setting the pin to input mode
+	toShDbl = TimeOutShortDbl;													// minimum time to be recognized as a short key press
+	lngKeyTme  = LongKeyTime;													// time key should be pressed to be recognized as a long key press
+	toLoDbl = TimeOutLongDdbl;													// maximum time between a double key press
 	callBack = tCallBack;														// call back address for button state display
 	
 	// default settings
-	pin = tPin;
+	pin = Pin;
 	cFlag = 0;																	// no need for the poll routine at the moment
 	cStat = 1;																	// active low, means last state should be active to get the next change
 	lStat = 1;
@@ -1829,32 +1831,31 @@ void BK::config(uint8_t tIdx, uint8_t tPin, uint16_t tTimeOutShortDbl, uint16_t 
 	
 	// setting the interrupt and port mask
 	// http://www.kriwanek.de/arduino/grundlagen/183-mehrere-pin-change-interrupts-verwenden.html
-	volatile uint8_t* pcicr = digitalPinToPCICR(tPin);
-	*pcicr |= (1 << digitalPinToPCICRbit(tPin));
-	volatile uint8_t* pcmsk = digitalPinToPCMSK(tPin);
-	*pcmsk |= (1 << digitalPinToPCMSKbit(tPin));
+	volatile uint8_t* pcicr = digitalPinToPCICR(Pin);
+	*pcicr |= (1 << digitalPinToPCICRbit(Pin));
+	volatile uint8_t* pcmsk = digitalPinToPCMSK(Pin);
+	*pcmsk |= (1 << digitalPinToPCMSKbit(Pin));
 
 	// load the respective pin register to mask out in interrupt routine
-	uint8_t pinPort = digitalPinToPort(tPin)-2;									// get the respective port to the given pin
+	uint8_t pinPort = digitalPinToPort(Pin)-2;									// get the respective port to the given pin
 	pci.lPort[pinPort] = *portInputRegister(pinPort+2) & *pcmsk;				// store the port input byte for later comparison
 	pci.pAddr[pinPort] = (uint8_t*)portInputRegister(pinPort+2);				// store the address of the port input register to avoid PGM read in the interrupt
 	
 	// set index and call back address for interrupt handling
-	idx = tIdx;																	// set the index in the interrupt array
+	idx = Cnl;																	// set the index in the interrupt array
 	pci.ptr[idx] = this;														// set the call back address
-	pci.idx[idx] = (pinPort << 8) + (1 << digitalPinToPCMSKbit(tPin));			// calculate and set the index number for faster finding in the interrupt routine
+	pci.idx[idx] = (pinPort << 8) + (1 << digitalPinToPCMSKbit(Pin));			// calculate and set the index number for faster finding in the interrupt routine
 	//Serial << "pin:" << tPin << ", idx:" << pci.idx[pci.nbr] << ", prt:" << pinPort << ", msk:" << (1 << digitalPinToPCMSKbit(tPin)) << '\n';
 }
 void BK::poll() {
 	for (uint8_t i = 0; i < maxInt; i++) {
 		if (pci.ptr[i]) {
 			BK *p = pci.ptr[i];
-			p->poll1();
+			p->poll_btn();
 		}
 	}
 }
-
-void BK::poll1() {
+void BK::poll_btn() {
 	// possible events of this function:
 	// 0 - short key press
 	// 1 - double short key press
@@ -1880,8 +1881,8 @@ void BK::poll1() {
 		}
 
 		if ((dblLo == 0) && (dblSh == 0)) cFlag = 0;							// no need for checking again
-		if (dblLo) cTime = millis() + toLoDbl + 1;								// set the next check time
-		if (dblSh) cTime = millis() + toShDbl + 1;								// set the next check time
+		if (dblLo) cTime = millis() + toLoDbl;									// set the next check time
+		if (dblSh) cTime = millis() + toShDbl;									// set the next check time
 	
 	} else if ((cStat == 1) && (lStat == 0)) {									// key release
 	// coming from a short or long key press, end of long key press by checking against rptLo
@@ -1896,13 +1897,13 @@ void BK::poll1() {
 			//Serial << "dbl sh\n";
 			callBack(idx,1);													// double short key press
 
-		} else if (kTime + longKeyTime > millis()) {							// short key press
+		} else if (kTime + lngKeyTme > millis()) {								// short key press
 			dblSh = 1;															// next time it could be a double short
 			//Serial << "sh\n";
 			if (!toShDbl) callBack(idx,0);										// short key press
 		} 
-		if ((dblSh) && (toShDbl)) cTime = millis() + toShDbl + 1;				// set the next check time
-		if (dblLo) cTime = millis() + toLoDbl + 1;								// set the next check time
+		if ((dblSh) && (toShDbl)) cTime = millis() + toShDbl;					// set the next check time
+		if (dblLo) cTime = millis() + toLoDbl;									// set the next check time
 		kTime = millis();														// set variable to measure against
 		lStat = cStat;															// remember last key state
 		cFlag = 1;																// next check needed
@@ -1910,7 +1911,7 @@ void BK::poll1() {
 	} else if ((cStat == 0) && (lStat == 1)) {
 	// key is pressed just now, set timeout 
 		kTime = millis();														// store timer
-		cTime = millis() + longKeyTime + 1;										// set next timeout
+		cTime = millis() + lngKeyTme;											// set next timeout
 		lStat = cStat;															// remember last key state
 		cFlag = 1;																// next check needed
 		
@@ -1919,7 +1920,7 @@ void BK::poll1() {
 	// if it is a long key press, check against dblLo for detecting a double long key press
 		if (rptLo) {															// repeated long detect
 			dblLo = 0;															// could not be a double any more
-			cTime = millis() + longKeyTime + 1;									// set next timeout
+			cTime = millis() + lngKeyTme;										// set next timeout
 			//Serial << "rpt lo\n";
 			callBack(idx,3);													// repeated long key press
 			
@@ -1933,13 +1934,226 @@ void BK::poll1() {
 		} else {																// first long detect
 			dblLo = 1;															// next time it could be a double
 			rptLo = 1;															// or a repeated long
-			cTime = millis() + longKeyTime + 1;									// set next timeout
+			cTime = millis() + lngKeyTme;										// set next timeout
 			//Serial << "lo\n";
 			callBack(idx,2);													// long key press
 			
 		}
 	}
 }
+
+
+//- -----------------------------------------------------------------------------------------------------------------------
+//- relay functions -------------------------------------------------------------------------------------------------------
+//- -----------------------------------------------------------------------------------------------------------------------
+// public function for setting the module
+void RL::config(uint8_t cnl, uint8_t type, uint8_t pinOn1, uint8_t pinOn2, uint8_t pinOff1, uint8_t pinOff2) {
+	// store config settings in class
+	hwType = type;																// 0 indicates a monostable, 1 a bistable relay
+	hwPin[0] = pinOn1;															// first 2 bytes for on, second two for off
+	hwPin[1] = pinOn2;	
+	hwPin[2] = pinOff1;	
+	hwPin[3] = pinOff2;		
+
+	// set output pins
+	for (uint8_t i = 0; i < 4; i++) {											// set output pins
+		if (hwPin[i] > 0) {														// only if we have a valid pin
+			pinMode(hwPin[i], OUTPUT);											// set to output
+			digitalWrite(hwPin[i],0);											// set port to low
+		}
+	}
+	
+	prl.ptr[prl.nbr++] = this;													// register inxtStatnce in struct
+	cnlAss = cnl;																// stores the channel for the current instance
+	curStat = 6;																// set relay status to off
+	adjRly(0);																	// set relay to a defined status
+}
+void RL::setCallBack(void msgCallBack(uint8_t, uint8_t, uint8_t), HM *statCallBack, uint8_t minDelay, uint8_t randomDelay) {
+	mDel = minDelay;															// remember minimum delay for sending the status
+	rDel = (randomDelay)?randomDelay:1;											// remember random delay for sending the status
+	cbS = statCallBack;															// call back address for sending status and ACK
+	cbM = msgCallBack;															// remember the address
+	//cbsTme = millis() + ((uint32_t)mDel*1000) + random(((uint32_t)rDel*1000)); // set the timer for sending the status
+}
+
+// public functions for triggering some action
+void RL::trigger11(uint8_t val, uint8_t *rampTime, uint8_t *duraTime) {
+	// {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
+
+	rTime = (uint16_t)rampTime[0]<<8 | (uint16_t)rampTime[1];					// store ramp time
+	dTime = (duraTime)?((uint16_t)duraTime[0]<<8 | (uint16_t)duraTime[1]):0;	// duration time if given
+
+	if (rTime) nxtStat = (val == 0)?4:1;										// set next status
+	else nxtStat = (val == 0)?6:3;
+	
+	lastTrig = 11;																// remember the trigger
+	rlyTime = millis();															// changed some timers, activate poll function
+	cbS->sendACKStatus(cnlAss,val,((nxtStat==1)||(nxtStat==4))?0x40:0);			// send an status ACK 
+	
+	#if defined(RL_DBG)															// some debug message
+	Serial << F("RL:trigger11, val:") << val << F(", nxtS:") << nxtStat << F(", rampT:") << rTime << F(", duraT:") << dTime << '\n';
+	#endif
+}
+void RL::trigger41(uint8_t lngIn, uint8_t val, void *plist3) {
+	lastTrig = 41;																// set trigger
+	rlyTime = millis();															// changed some timers, activate poll function
+}
+void RL::trigger40(uint8_t lngIn, uint8_t cnt, void *plist3) {
+	srly = (s_srly*)plist3;														// copy list3 to pointer
+	static uint8_t rCnt;														// to identify multi execute
+	
+	// check for repeated message	
+	if ((lngIn) && (srly->lgMultiExec == 0) && (cnt == rCnt)) return;			// trigger was long
+	if ((lngIn == 0) && (cnt == rCnt)) return;									// repeated instruction
+	rCnt = cnt;																	// remember message counter
+
+	// fill the respective variables
+	uint8_t actTp = (lngIn)?srly->lgActionType:srly->shActionType;				// get actTp = {off=>0,jmpToTarget=>1,toggleToCnt=>2,toggleToCntInv=>3}
+
+	if (actTp == 0) {															// off
+
+	} else if ((actTp == 1) && (lngIn == 1)) {									// jmpToTarget
+		// SwJtOn {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
+		if      (curStat == 6) nxtStat = srly->lgSwJtOff;						// currently off
+		else if (curStat == 3) nxtStat = srly->lgSwJtOn;						// on
+		else if (curStat == 4) nxtStat = srly->lgSwJtDlyOff;					// delay off
+		else if (curStat == 1) nxtStat = srly->lgSwJtDlyOn;						// delay on
+		OnDly   = srly->lgOnDly;												// set timers
+		OnTime  = srly->lgOnTime;
+		OffDly  = srly->lgOffDly;
+		OffTime = srly->lgOffTime;
+
+	} else if ((actTp == 1) && (lngIn == 0)) {									// jmpToTarget
+		if      (curStat == 6) nxtStat = srly->shSwJtOff;						// currently off
+		else if (curStat == 3) nxtStat = srly->shSwJtOn;						// on
+		else if (curStat == 4) nxtStat = srly->shSwJtDlyOff;					// delay off
+		else if (curStat == 1) nxtStat = srly->shSwJtDlyOn;						// delay on
+		OnDly   = srly->shOnDly;												// set timers
+		OnTime  = srly->shOnTime;
+		OffDly  = srly->shOffDly;
+		OffTime = srly->shOffTime;
+
+	} else if (actTp == 2) {													// toogleToCnt, if tCnt is even, then next state is on
+		nxtStat = (cnt % 2 == 0)?3:6;											// even - relay dlyOn, otherwise dlyOff
+		OnDly   = 0; OnTime  = 255; OffDly  = 0; OffTime = 255;					// set timers
+		
+	} else if (actTp == 3) {													// toggleToCntInv, if tCnt is even, then next state is off, while inverted
+		nxtStat = (cnt % 2 == 0)?6:3;											// even - relay dlyOff, otherwise dlyOn
+		OnDly   = 0; OnTime  = 255; OffDly  = 0; OffTime = 255;					// set timers
+	}
+	lastTrig = 40;																// set trigger
+	rlyTime = millis();															// changed some timers, activate poll function
+
+	#if defined(RL_DBG)															// some debug message
+	Serial << F("RL:trigger40, curS:") << curStat << F(", nxtS:") << nxtStat << F(", OnDly:") << OnDly << F(", OnTime:") << OnTime << F(", OffDly:") << OffDly << F(", OffTime:") << OffTime << '\n';
+	#endif
+	
+	cbS->sendACKStatus(cnlAss,getRly(),((nxtStat==1)||(nxtStat==4))?0x40:0);
+}
+void RL::sendStatus(void) {
+	if (cbS) cbS->sendInfoActuatorStatus(cnlAss,getRly(),getStat());			// call back
+}
+
+// public poll function to poll relay and delayed status messages
+void RL::poll(void) {
+	if (prl.nbr == 0) return;													// no inxtStatnce listed
+	for (uint8_t i = 0; i < prl.nbr; i++) {										// step through inxtStatnces
+		prl.ptr[i]->poll_rly();													// and poll the relay
+		prl.ptr[i]->poll_cbd();													// and poll the call back timer
+	}
+}
+
+// private functions for setting relay and getting current status
+void RL::adjRly(uint8_t tValue) {
+	if (curStat == nxtStat) return;												// nothing to do
+	if (hwType == 0) {															// monostable - on
+		if (hwPin[0] > 0) digitalWrite(hwPin[0],tValue);						// write the state to the port pin
+		if (hwPin[1] > 0) digitalWrite(hwPin[1],tValue);
+
+		} else if ((hwType == 1) && (tValue == 1)) {								// bistable - on
+		if (hwPin[0] > 0) digitalWrite(hwPin[0],1);								// port pins to on
+		if (hwPin[1] > 0) digitalWrite(hwPin[1],1);
+		delay(50);																// wait a short time
+		if (hwPin[0] > 0) digitalWrite(hwPin[0],0);								// port pins to off again
+		if (hwPin[1] > 0) digitalWrite(hwPin[1],0);
+		
+		} else if ((hwType == 1) && (tValue == 0)) {								// bistable - off
+		if (hwPin[2] > 0) digitalWrite(hwPin[2],1);								// port pins to on
+		if (hwPin[3] > 0) digitalWrite(hwPin[3],1);
+		delay(50);																// wait a short time
+		if (hwPin[2] > 0) digitalWrite(hwPin[2],0);								// port pins to off again
+		if (hwPin[3] > 0) digitalWrite(hwPin[3],0);
+	}
+	#if defined(RL_DBG)															// some debug message
+	Serial << F("RL:adjRly, curS:") << curStat << F(", nxtS:") << nxtStat << '\n';
+	#endif
+
+	cbsTme = millis() + ((uint32_t)mDel*1000) + random(((uint32_t)rDel*1000));	// set the timer for sending the status
+	//Serial << "cbsT:" << cbsTme << '\n';
+}
+uint8_t RL::getRly(void) {
+	// curStat could be {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
+	if ((curStat == 1) || (curStat == 3)) return 0xC8;
+	if ((curStat == 4) || (curStat == 6)) return 0x00;
+}
+uint8_t RL::getStat(void) {
+	// curStat could be {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
+	return (rlyTime > 0)?0x40:0x00;
+}
+
+// private function for polling the relay and sending delayed status message
+void RL::poll_rly(void) {
+	if ((rlyTime == 0) || (rlyTime > millis())) return;							// timer set to 0 or time for action not reached, leave
+	rlyTime = 0;																// freeze per default
+
+	// set relay - {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
+	if (nxtStat == 3) {															// set relay on
+		adjRly(1); curStat = 3;													// adjust relay, status will send from adjRly()
+
+	} else if (nxtStat == 6) {													// set relay off
+		adjRly(0); curStat = 6;													// adjust relay, status will send from adjRly()
+	}
+	
+	// adjust nxtStat for trigger11 - {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
+	if (lastTrig == 11) {
+		if (nxtStat == 1) {														// dlyOn -> on
+			nxtStat = 3;														// next status is on
+			rlyTime = millis() + intTimeCvt(rTime);								// set respective timer
+		
+		} else if ((nxtStat == 3) && (dTime > 0)) {								// on - > off
+			nxtStat = 6;														// next status is off
+			rlyTime = millis() + intTimeCvt(dTime);								// set the respective timer
+		}
+	}
+		
+	// adjust nxtStat for trigger40 - {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
+	if (lastTrig == 40) {
+		if        (nxtStat == 1) {
+			nxtStat = 3;
+			rlyTime = millis() + byteTimeCvt(OnDly);
+
+		} else if ((nxtStat == 3) && (OnTime < 255)) {
+			nxtStat = 4;
+			if (OnTime) rlyTime = millis() + byteTimeCvt(OnTime);
+
+		} else if (nxtStat == 4) {
+			nxtStat = 6;
+			rlyTime = millis() + byteTimeCvt(OffDly);
+
+		} else if ((nxtStat == 6) && (OffTime < 255)) {
+			nxtStat = 1;
+			if (OffTime) rlyTime = millis() + byteTimeCvt(OffTime);
+		}
+	}
+	
+	cbM(cnlAss, curStat, nxtStat);
+}
+void RL::poll_cbd(void) {
+	if ((cbsTme == 0) || (cbsTme > millis())) return;							// timer set to 0 or time for action not reached, leave
+	if (cbS) cbS->sendInfoActuatorStatus(cnlAss,getRly(),0);					// call back
+	cbsTme = 0;																	// nothing to do any more
+}
+
 
 //- -----------------------------------------------------------------------------------------------------------------------
 //- serial parser and display functions -----------------------------------------------------------------------------------
@@ -2088,6 +2302,21 @@ uint16_t freeMemory() {															// shows free memory
 
 	return free_memory;
 }
+uint32_t byteTimeCvt(uint8_t tTime) {
+	const uint16_t c[8] = {1,10,50,100,600,3000,6000,36000};
+	return (uint32_t)(tTime & 0x1f)*c[tTime >> 5]*100;
+}
+uint32_t intTimeCvt(uint16_t iTime) {
+	if (iTime == 0) return 0;
+	
+	uint8_t tByte;
+	if ((iTime & 0x1F) != 0) {
+		tByte = 2;
+		for (uint8_t i = 1; i < (iTime & 0x1F); i++) tByte *= 2;		
+	} else tByte = 1;
+	
+	return (uint32_t)tByte*(iTime>>5)*100;
+}
 
 //- serial print functions 
 char pHex(uint8_t val) {
@@ -2127,12 +2356,10 @@ void pcInt(uint8_t iPort) {
 	uint8_t msk = pci.lPort[iPort]^cur;											// mask out the changes
 	if (!msk) { sei(); return; }												// end while nothing had changed
 	
-	
-	
 	//Serial << "cur:" << cur << ", lst:" << pci.lPort[iPort] << ", msk:" << msk << ", mbt:" << pcMskByte << '\n';
 	pci.lPort[iPort] = cur;														// store the latest port reading
 
-	// finding the respective instance of BK by searching for the changed bit
+	// finding the respective inxtStatnce of BK by searching for the changed bit
 	uint16_t tFnd = (iPort << 8) + msk;											// construct search mask
 	for (uint8_t i = 0; i < maxInt; i++) {
 		if (tFnd == pci.idx[i]) {												// found; write flag and time in the respective button key class
@@ -2141,10 +2368,9 @@ void pcInt(uint8_t iPort) {
 			p->cStat = (cur & msk)?1:0;											// setting the pin status
 			p->cTime = millis() + 50;											// for debouncing
 			p->cFlag = 1;														// something to do
-			break;																// no need to step through all instances
+			break;																// no need to step through all inxtStatnces
 		}
 	}
-
 	sei();																		// interrupts on again
 }
 ISR( WDT_vect ) {

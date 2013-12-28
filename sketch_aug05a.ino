@@ -39,12 +39,16 @@ InputParser parser (50, cmdTab);
 //- homematic communication -----------------------------------------------------------------------------------------------
 s_jumptable jumptable[] PROGMEM = {												// jump table for HM communication
 	{ 0x01, 0x0E, HM_Status_Request },
+	{ 0x11, 0x02, HM_Set_Cmd },
 	{ 0x11, 0x04, HM_Reset_Cmd },
+	{ 0x3E, 0x00, HM_Switch_Event  },
+	{ 0x40, 0x00, HM_Remote_Event  },
 	{ 0xFF, 0xFF, HM_Config_Changed },
 	{ 0x0 }
 };
 HM hm (jumptable, regMcPtr);													// declare class for handling HM communication
-BK bk[7];																		// declare 7 instances of the button key handler
+BK bk[1];																		// declare 1 inxtStatnces of the button key handler
+RL rl[1];																		// declare one inxtStatnce of relay class
 
 //- some timer test
 uint32_t nTimer;
@@ -54,39 +58,46 @@ void setup() {
 	Serial.begin(57600);														// starting serial messages
 
 	// some power savings
-//	power_all_disable();														// all devices off
-//	power_timer0_enable();														// we need timer0 for delay function
+	ADCSRA = 0;																	// disable ADC
+	power_all_disable();														// all devices off
+	power_timer0_enable();														// we need timer0 for delay function
 	//power_timer2_enable();													// we need timer2 for PWM
-//	power_usart0_enable();														// it's the serial console
+	power_usart0_enable();														// it's the serial console
 	//power_twi_enable();														// i2c interface, not needed yet
-//	power_spi_enable();															// enables SPI master
+	power_spi_enable();															// enables SPI master
 	//power_adc_enable();
 
 	// init HM module
 	hm.init();																	// initialize HM module
 	hm.ld.config(4);															// configure the status led pin
-	hm.setPowerMode(4);															// power mode for HM device
+	hm.setPowerMode(0);															// power mode for HM device
 	hm.setConfigEvent();														// reread config 
-	
 
+	// init the configure button
+	bk[0].config(0,8,0,5000,5000,&buttonState);									// button 0 for channel 0 for send pairing string, and double press for reseting device config - config(tIdx, tPin, tTimeOutShortDbl, tLongKeyTime, tTimeOutLongDdbl, tCallBack)
+
+	// init relay stuff
+	rl[0].config(1,0,3,0,0,0);													// configure the relay to monostable, on pin 3
+	rl[0].setCallBack(&relayState,&hm,1,1);
+	
 	// show help screen and config
 	showHelp();																	// shows help screen on serial console
 	showSettings();																// show device settings
-	
-	
+
 }
 
 void loop() {
-	// poll functions for serial console, HM module and button key handler
+	// poll functions for serial console, HM module, button key handler and relay handler
 	parser.poll();																// handle serial input from console
 	hm.poll();																	// HOMEMATIC task scheduler
 	bk->poll();																	// key handler poll
-
-	if (nTimer < millis()) {
-		nTimer = millis() + 30000;												// jump in every 30 seconds
-		Serial << "t:" << (millis()/1000) << '\n';								// time stamp
-		hm.stayAwake(100);														// wait 100ms to get the output in console
-	}
+	rl->poll();																	// relay handler poll
+	
+	//if (nTimer < millis()) {
+	//	nTimer = millis() + 30000;												// jump in every 30 seconds
+	//	Serial << "t:" << (millis()/1000) << '\n';								// time stamp
+	//	hm.stayAwake(100);														// wait 100ms to get the output in console
+	//}
 }
 
 
@@ -110,13 +121,11 @@ void buttonState(uint8_t idx, uint8_t state) {
 		if (state == 6) hm.ld.set(0);											// time out for double long, stop slow blinking
 		if (state == 5) hm.reset();												// double long key press, reset the device
 	}
+}
 
-	// channel 1 - 6
-	if ((idx >= 1) && (idx <= 6)) {
-		if ((state == 0) || (state == 1)) hm.sendPeerREMOTE(idx,0,0);			// short key or double short key press detected
-		if ((state == 2) || (state == 3)) hm.sendPeerREMOTE(idx,1,0);			// long or repeated long key press detected
-		if (state == 4) hm.sendPeerREMOTE(idx,2,0);								// end of long or repeated long key press detected
-	}
+//- relay handler functions -----------------------------------------------------------------------------------------------
+void relayState(uint8_t cnl, uint8_t curStat, uint8_t nxtStat) {
+	Serial << "c:" << cnl << " cS:" << curStat << " nS:" << nxtStat << '\n';	// some debug message
 }
 
 
@@ -125,40 +134,47 @@ void HM_Status_Request(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// message from master to client while requesting the channel specific status
 	// client has to send an INFO_ACTUATOR_MESSAGE with the current status of the requested channel
 	// there is no payload; data[0] could be ignored
-	Serial << F("\nStatus_Request; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
 
-	// user code here...
+	//Serial << F("\nxtStattus_Request; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+	if (cnl == 1) rl[0].sendStatus();											// send the current status
+}
+void HM_Set_Cmd(uint8_t cnl, uint8_t *data, uint8_t len) {
+	// message from master to client for setting a defined value to client channel
+	// client has to send an ACK with the current status; payload is typical 3 bytes
+	// data[0] = status message; data[1] = down,up,low battery; data[2] = rssi (signal quality)
 
-	// no user code needed, send only content from dimVal[0]
-	hm.sendInfoActuatorStatus(cnl, 0);
+	//Serial << F("\nSet_Cmd; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+	if (cnl == 1) rl[0].trigger11(data[0], data+1, (len>4)?data+3:NULL);
 }
 void HM_Reset_Cmd(uint8_t cnl, uint8_t *data, uint8_t len) {
-	Serial << F("\nReset_Cmd; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+	//Serial << F("\nReset_Cmd; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
 	hm.send_ACK();																// send an ACK
 	if (cnl == 0) hm.reset();													// do a reset only if channel is 0
 }
+void HM_Switch_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
+	// sample needed!
+	// ACK is requested but will send automatically
+	Serial << F("\nSwitch_Event; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+}
+
+void HM_Remote_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
+	// message from a remote to the client device; this event pop's up if the remote is peered
+	// cnl = indicates client device channel
+	// data[0] the remote channel, but also the information for long key press - ((data[0] & 0x40)>>6) extracts the long key press
+	// data[1] = typically the key counter of the remote
+	
+	//Serial << F("\nRemote_Event; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+	if (cnl == 1) rl[0].trigger40(((data[0] & 0x40)>>6),data[1],(void*)&regMC.ch1.l3);
+}
+void HM_Sensor_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
+	// sample needed!
+	// ACK is requested but will send automatically
+	Serial << F("\nSensor_Event; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+}
 void HM_Config_Changed(uint8_t cnl, uint8_t *data, uint8_t len) {
 	Serial << F("config changed\n");
-
-	// some debug message
-	//Serial << "ch1: long:" << 300+(regMC.ch1.l1.longPress*100) << ", dbl:" << (regMC.ch1.l1.dblPress*100) << '\n';	
-	//Serial << "ch2: long:" << 300+(regMC.ch2.l1.longPress*100) << ", dbl:" << (regMC.ch2.l1.dblPress*100) << '\n';
-	//Serial << "ch3: long:" << 300+(regMC.ch3.l1.longPress*100) << ", dbl:" << (regMC.ch3.l1.dblPress*100) << '\n';
-	//Serial << "ch4: long:" << 300+(regMC.ch4.l1.longPress*100) << ", dbl:" << (regMC.ch4.l1.dblPress*100) << '\n';
-	//Serial << "ch5: long:" << 300+(regMC.ch5.l1.longPress*100) << ", dbl:" << (regMC.ch5.l1.dblPress*100) << '\n';
-	//Serial << "ch6: long:" << 300+(regMC.ch6.l1.longPress*100) << ", dbl:" << (regMC.ch6.l1.dblPress*100) << '\n';
-
-	// configure some buttons - config(tIdx, tPin, tTimeOutShortDbl, tLongKeyTime, tTimeOutLongDdbl, tCallBack)
-	bk[0].config(0,8,0,5000,5000,buttonState);									// button 0 for channel 0 for send pairing string, and double press for reseting device config
-
-	bk[1].config(1,A0,(regMC.ch1.l1.dblPress*100),300+(regMC.ch1.l1.longPress*100),1000,buttonState); // channel 1 to 6 as push button
-	bk[2].config(2,A1,(regMC.ch2.l1.dblPress*100),300+(regMC.ch2.l1.longPress*100),1000,buttonState);
-	bk[3].config(3,A2,(regMC.ch3.l1.dblPress*100),300+(regMC.ch3.l1.longPress*100),1000,buttonState);
-	bk[4].config(4,A3,(regMC.ch4.l1.dblPress*100),300+(regMC.ch4.l1.longPress*100),1000,buttonState);
-	bk[5].config(5,A4,(regMC.ch5.l1.dblPress*100),300+(regMC.ch5.l1.longPress*100),1000,buttonState);
-	bk[6].config(6,A5,(regMC.ch6.l1.dblPress*100),300+(regMC.ch6.l1.longPress*100),1000,buttonState);
-
 }
+
 
 //- config functions ------------------------------------------------------------------------------------------------------
 void sendCmdStr() {																// reads a sndStr from console and put it in the send queue
