@@ -47,7 +47,7 @@ s_jumptable jumptable[] PROGMEM = {												// jump table for HM communicatio
 	{ 0x0 }
 };
 HM hm (jumptable, regMcPtr);													// declare class for handling HM communication
-BK bk[1];																		// declare 1 inxtStatnces of the button key handler
+BK bk[3];																		// declare 1 inxtStatnces of the button key handler
 RL rl[1];																		// declare one inxtStatnce of relay class
 
 //- some timer test
@@ -86,6 +86,7 @@ void setup() {
 	showHelp();																	// shows help screen on serial console
 	showSettings();																// show device settings
 
+      Serial << F("version 015") << '\n';															// show device settings
 }
 
 void loop() {
