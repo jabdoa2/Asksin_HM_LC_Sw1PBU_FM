@@ -75,18 +75,18 @@ void setup() {
 
 	// configure some buttons - config(tIdx, tPin, tTimeOutShortDbl, tLongKeyTime, tTimeOutLongDdbl, tCallBack)
 	bk[0].config(0,15,0,5000,5000,buttonState);									// button 0 for channel 0 for send pairing string, and double press for reseting device config
-	bk[1].config(1,14,0,1100,1000,buttonState); // channel 1 to 6 as push button
-	bk[2].config(2,8,0,1100,1000,buttonState);
+	bk[1].config(1,14,0,1000,5000,buttonState); // channel 1 to 2 as push button
+	bk[2].config(2,8,0,1000,5000,buttonState);
 
 	// init relay stuff
-	rl[0].config(3,0,12,0,0,0);													// configure the relay to monostable, on pin 3
-	//rl[0].setCallBack(&relayState,&hm,1,1);
+	rl[0].config(3,0,12,0,0,0);		// Channel 3 as aktor											// configure the relay to monostable, on pin 3
+	rl[0].setCallBack(&relayState,&hm,1,1);
 	
 	// show help screen and config
 	showHelp();																	// shows help screen on serial console
 	showSettings();																// show device settings
 
-      Serial << F("version 015") << '\n';															// show device settings
+      Serial << F("version 020") << '\n';															// show device settings
 }
 
 void loop() {
@@ -94,7 +94,7 @@ void loop() {
 	parser.poll();																// handle serial input from console
 	hm.poll();																	// HOMEMATIC task scheduler
 	bk->poll();																	// key handler poll
-	//rl->poll();																	// relay handler poll
+	rl->poll();																	// relay handler poll
 	
 	//if (nTimer < millis()) {
 	//	nTimer = millis() + 30000;												// jump in every 30 seconds
@@ -146,7 +146,7 @@ void HM_Status_Request(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// there is no payload; data[0] could be ignored
 
 	//Serial << F("\nxtStattus_Request; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
-	if (cnl == 1) rl[0].sendStatus();											// send the current status
+	if (cnl == 3) rl[0].sendStatus();											// send the current status
 }
 void HM_Set_Cmd(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// message from master to client for setting a defined value to client channel
@@ -154,7 +154,7 @@ void HM_Set_Cmd(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// data[0] = status message; data[1] = down,up,low battery; data[2] = rssi (signal quality)
 
 	//Serial << F("\nSet_Cmd; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
-	if (cnl == 1) rl[0].trigger11(data[0], data+1, (len>4)?data+3:NULL);
+	if (cnl == 3) rl[0].trigger11(data[0], data+1, (len>4)?data+3:NULL);
 }
 void HM_Reset_Cmd(uint8_t cnl, uint8_t *data, uint8_t len) {
 	//Serial << F("\nReset_Cmd; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
@@ -174,7 +174,7 @@ void HM_Remote_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// data[1] = typically the key counter of the remote
 	
 	//Serial << F("\nRemote_Event; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
-	if (cnl == 1) rl[0].trigger40(((data[0] & 0x40)>>6),data[1],(void*)&regMC.ch3.l3);
+	if (cnl == 3) rl[0].trigger40(((data[0] & 0x40)>>6),data[1],(void*)&regMC.ch3.l3);
 }
 void HM_Sensor_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// sample needed!
