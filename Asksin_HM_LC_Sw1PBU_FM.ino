@@ -86,7 +86,7 @@ void setup() {
 	showHelp();																	// shows help screen on serial console
 	showSettings();																// show device settings
 
-      Serial << F("version 020") << '\n';															// show device settings
+      Serial << F("version 023") << '\n';															// show device settings
 }
 
 void loop() {
@@ -144,8 +144,9 @@ void HM_Status_Request(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// message from master to client while requesting the channel specific status
 	// client has to send an INFO_ACTUATOR_MESSAGE with the current status of the requested channel
 	// there is no payload; data[0] could be ignored
-
-	//Serial << F("\nxtStattus_Request; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+	#if defined(RL_DBG)	
+	Serial << F("\nxtStattus_Request; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+        #endif
 	if (cnl == 3) rl[0].sendStatus();											// send the current status
 }
 void HM_Set_Cmd(uint8_t cnl, uint8_t *data, uint8_t len) {
@@ -153,18 +154,24 @@ void HM_Set_Cmd(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// client has to send an ACK with the current status; payload is typical 3 bytes
 	// data[0] = status message; data[1] = down,up,low battery; data[2] = rssi (signal quality)
 
-	//Serial << F("\nSet_Cmd; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+	#if defined(RL_DBG)
+	Serial << F("\nSet_Cmd; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+        #endif
 	if (cnl == 3) rl[0].trigger11(data[0], data+1, (len>4)?data+3:NULL);
 }
 void HM_Reset_Cmd(uint8_t cnl, uint8_t *data, uint8_t len) {
-	//Serial << F("\nReset_Cmd; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+  	#if defined(RL_DBG)	
+	Serial << F("\nReset_Cmd; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+        #endif
 	hm.send_ACK();																// send an ACK
 	if (cnl == 0) hm.reset();													// do a reset only if channel is 0
 }
 void HM_Switch_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// sample needed!
 	// ACK is requested but will send automatically
+	#if defined(RL_DBG)	
 	Serial << F("\nSwitch_Event; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+        #endif
 }
 
 void HM_Remote_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
@@ -172,8 +179,9 @@ void HM_Remote_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// cnl = indicates client device channel
 	// data[0] the remote channel, but also the information for long key press - ((data[0] & 0x40)>>6) extracts the long key press
 	// data[1] = typically the key counter of the remote
-	
-	//Serial << F("\nRemote_Event; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+        #if defined(RL_DBG)	
+	Serial << F("\nRemote_Event; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+        #endif
 	if (cnl == 3) rl[0].trigger40(((data[0] & 0x40)>>6),data[1],(void*)&regMC.ch3.l3);
 }
 void HM_Sensor_Event(uint8_t cnl, uint8_t *data, uint8_t len) {

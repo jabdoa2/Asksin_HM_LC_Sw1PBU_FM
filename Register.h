@@ -271,9 +271,16 @@ static void mainSettings(uint16_t *regPtr, uint16_t *peerPtr) {
 
 	reg.ch_2.peer[0].peerNeedsBurst = 1;
 
+        reg.ch_3.peer[0].shActionType = 1;
+        reg.ch_3.peer[0].lgActionType = 1;
+        reg.ch_3.peer[0].shSwJtOff = 3;
+        reg.ch_3.peer[0].lgSwJtOff = 3;
+        reg.ch_3.peer[0].shSwJtOn = 6;
+        reg.ch_3.peer[0].lgSwJtOn = 6;
+
 	peerdb[0][0] = 0x013BD621; // 21D63B
 	peerdb[1][0] = 0x013BD621;
-	peerdb[2][0] = 0x013BD621;
+	peerdb[2][0] = 0x01563412; // 12345601
 	
 }
 
