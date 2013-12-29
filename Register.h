@@ -8,13 +8,13 @@
 //- settings of HM device for HM class -------------------------------------------------------------------------------------
 const uint8_t devParam[] PROGMEM = {
 	/* Firmware version 1 byte */  0x15,									// don't know for what it is good for
-	/* Model ID	        2 byte */  0x00, 0x6C,								// model ID, describes HM hardware. we should use high values due to HM starts from 0
+	/* Model ID	        2 byte */  0x00, 0xA9,	//0x00, 0x6C							// model ID, describes HM hardware. we should use high values due to HM starts from 0
 	/* Serial ID       10 byte */  'P','S','0','0','0','0','0','0','0','2', // serial ID, needed for pairing
 	/* Sub Type ID      1 byte */  0x10,									// not needed for FHEM, it's something like a group ID
 	/* Device Info      3 byte */  0x41, 0x01, 0x00							// describes device, not completely clear yet. includes amount of channels
 };
 
-static uint8_t  HMID[3]     = { 0x5F, 0xB7, 0x4B };							// very important, must be unique. identifier for the device in the network
+static uint8_t  HMID[3]     = { 0x5F, 0xB7, 0x4A };							// very important, must be unique. identifier for the device in the network
 static uint8_t  maxRetries  = 3;											// how often a string should be send out until we get an answer
 static uint16_t timeOut     = 700;											// time out for ACK handling
 
@@ -28,12 +28,14 @@ struct s_chDefType{
 };
 struct {
 	unsigned char  nbrChannels;
-	s_chDefType chDefType[2];
+	s_chDefType chDefType[4];
 	} const devDef = {
-	2                               // number of channels
+	3                               // number of channels
 	,{
 		{1,0,0}                // chn:0 type:regDev
-		,{0,6,4}                // chn:1 type:regChan
+		,{2,6,4}                // chn:1 type:regChan_remote
+		,{2,15,12}                // chn:2 type:regChan_remote
+		,{0,24,20}                // chn:3 type:regChan_actor
 	}
 };
 struct s_sliceStrTpl {
@@ -49,19 +51,35 @@ const s_sliceStrTpl sliceStr[] = {
 	{0x05, 0x01, 0x0001},
 	{0x0a, 0x03, 0x0002},
 	{0x12, 0x01, 0x0005},
-	{0x08, 0x01, 0x0006},           // chn:1 lst:1
-	{0x02, 0x0b, 0x0007},           // chn:1 lst:3
-	{0x82, 0x0b, 0x0012},
-	{0x02, 0x0b, 0x001d},
-	{0x82, 0x0b, 0x0028},
-	{0x02, 0x0b, 0x0033},
-	{0x82, 0x0b, 0x003e},
-	{0x02, 0x0b, 0x0049},
-	{0x82, 0x0b, 0x0054},
-	{0x02, 0x0b, 0x005f},
-	{0x82, 0x0b, 0x006a},
-	{0x02, 0x0b, 0x0075},
-	{0x82, 0x0b, 0x0080},
+	{0x04, 0x01, 0x0006},           // chn:1 lst:1
+	{0x08, 0x02, 0x0007},
+	{0x01, 0x01, 0x0009},           // chn:1 lst:4
+	{0x01, 0x01, 0x000a},
+	{0x01, 0x01, 0x000b},
+	{0x01, 0x01, 0x000c},
+	{0x01, 0x01, 0x000d},
+	{0x01, 0x01, 0x000e},
+	{0x04, 0x01, 0x000f},           // chn:2 lst:1
+	{0x08, 0x02, 0x0010},
+	{0x01, 0x01, 0x0012},           // chn:2 lst:4
+	{0x01, 0x01, 0x0013},
+	{0x01, 0x01, 0x0014},
+	{0x01, 0x01, 0x0015},
+	{0x01, 0x01, 0x0016},
+	{0x01, 0x01, 0x0017},
+	{0x08, 0x01, 0x0018},           // chn:3 lst:1
+	{0x02, 0x0b, 0x0019},           // chn:3 lst:3
+	{0x82, 0x0b, 0x0024},
+	{0x02, 0x0b, 0x002f},
+	{0x82, 0x0b, 0x003a},
+	{0x02, 0x0b, 0x0045},
+	{0x82, 0x0b, 0x0050},
+	{0x02, 0x0b, 0x005b},
+	{0x82, 0x0b, 0x0066},
+	{0x02, 0x0b, 0x0071},
+	{0x82, 0x0b, 0x007c},
+	{0x02, 0x0b, 0x0087},
+	{0x82, 0x0b, 0x0092},
 };
 struct s_listTpl {
 	unsigned char ListNo;
@@ -71,8 +89,8 @@ struct s_listTpl {
 struct {
 	unsigned char nbrLists;         // number of lists for this channel
 	struct s_listTpl type[2];       // fill data with lists
-	} const listTypeDef[2] = {
-	{ 2                             // type regChan
+	} const listTypeDef[3] = {
+	{ 2                             // type regChan actor
 		,{
 			{1,1,1}
 			,{3,2,6}
@@ -84,18 +102,24 @@ struct {
 			,{0,0,0}
 		}
 	}
+	,{ 2                             // type regChan remote
+		,{
+			{1,2,1}
+			,{4,1,6}
+		}
+	}
 };
 
 //- -----------------------------------------------------------------------------------------------------------------------
 // - peer db config -------------------------------------------------------------------------------------------------------
-#define maxChannel 1
+#define maxChannel 3
 #define maxPeer    6
 static uint32_t peerdb[maxChannel][maxPeer];
-const uint8_t peermax[] = {6};
+const uint8_t peermax[] = {6,6,6};
 
 //- -----------------------------------------------------------------------------------------------------------------------
 // - Channel device config ------------------------------------------------------------------------------------------------
-struct s_peer_regChan {                 // chn:1, lst:3
+struct s_peer_regChan_actor {                 // chn:1, lst:3
 	uint8_t shCtDlyOn           :4; // reg:0x02, sReg:2
 	uint8_t shCtDlyOff          :4; // reg:0x02, sReg:2.4
 	uint8_t shCtOn              :4; // reg:0x03, sReg:3
@@ -134,13 +158,30 @@ struct s_peer_regChan {                 // chn:1, lst:3
 	uint8_t lgSwJtDlyOn         :4; // reg:0x8C, sReg:140
 	uint8_t lgSwJtDlyOff        :4; // reg:0x8C, sReg:140.4
 };
-struct s_dev_regChan {
+struct s_peer_regChan_remote {                 // chn:6, lst:4
+	uint8_t peerNeedsBurst      :1; // reg:0x01, sReg:1
+	uint8_t                     :6;
+	uint8_t expectAES           :1; // reg:0x01, sReg:1.7
+};
+struct s_dev_regChan_actor {
 	uint8_t sign                :1; // reg:0x08, sReg:8
 };
-struct s_regChan {
-	s_dev_regChan  list1;
-	s_peer_regChan peer[6];
+struct s_dev_regChan_remote {
+	uint8_t                     :4;
+	uint8_t longPress           :4; // reg:0x04, sReg:4.4
+	uint8_t sign                :1; // reg:0x08, sReg:8
+	uint8_t                     :7;
+	uint8_t dblPress            :4; // reg:0x09, sReg:9
 };
+struct s_regChan_actor {
+	s_dev_regChan_actor  list1;
+	s_peer_regChan_actor peer[6];
+};
+struct s_regChan_remote {
+	s_dev_regChan_remote  list1;
+	s_peer_regChan_remote peer[6];
+};
+
 struct s_regDev {
 	uint8_t                     :7;
 	uint8_t intKeyVisib         :1; // reg:0x02, sReg:2.7
@@ -152,7 +193,9 @@ struct s_regDev {
 
 struct s_regs {
 	s_regDev ch_0;
-	s_regChan ch_1;
+	s_regChan_remote ch_1;
+	s_regChan_remote ch_2;
+	s_regChan_actor ch_3;
 };
 
 struct s_EEPROM {
@@ -164,20 +207,31 @@ struct s_EEPROM {
 //- -----------------------------------------------------------------------------------------------------------------------
 //- struct to provide register settings to user sketch --------------------------------------------------------------------
 
-struct s_cpy_regChan {
-	s_dev_regChan  l1;
-	s_peer_regChan l3;
+struct s_cpy_regChan_actor {
+	s_dev_regChan_actor  l1;
+	s_peer_regChan_actor l3;
+};
+
+struct s_cpy_regChan_remote {
+	s_dev_regChan_remote  l1;
+	s_peer_regChan_remote l4;
 };
 
 struct s_regCpy {
 	s_regDev    ch0;
-	s_cpy_regChan ch1;
+	s_cpy_regChan_remote ch1;
+	s_cpy_regChan_remote ch2;
+	s_cpy_regChan_actor ch3;
 } static regMC;
 
 static uint16_t regMcPtr[] = {
 	(uint16_t)&regMC.ch0,
 	(uint16_t)&regMC.ch1.l1,
-	(uint16_t)&regMC.ch1.l3,
+	(uint16_t)&regMC.ch1.l4,
+	(uint16_t)&regMC.ch2.l1,
+	(uint16_t)&regMC.ch2.l4,
+	(uint16_t)&regMC.ch3.l1,
+	(uint16_t)&regMC.ch3.l3,
 };
 
 //- -----------------------------------------------------------------------------------------------------------------------
@@ -196,20 +250,30 @@ static uint16_t regMcPtr[] = {
 //  if 'firstLoad' is defined, hm.init function will step in mainSettings function;
 //  be careful, whole eeprom block will be overwritten. you will loose your former settings...
 //- -----------------------------------------------------------------------------------------------------------------------
-//#define firstLoad;
+#define firstLoad;
 static void mainSettings(uint16_t *regPtr, uint16_t *peerPtr) {
 	static s_regs reg;
 	*regPtr = (uint16_t)&reg;
 	*peerPtr = (uint16_t)&peerdb;
 
 	reg.ch_0.intKeyVisib = 0;
-	reg.ch_0.pairCentral[0] = 0x63;
-	reg.ch_0.pairCentral[1] = 0x19;
-	reg.ch_0.pairCentral[2] = 0x63;
+	reg.ch_0.pairCentral[0] = 0x1A;
+	reg.ch_0.pairCentral[1] = 0xB1;
+	reg.ch_0.pairCentral[2] = 0x50;
 
+	
+	reg.ch_1.list1.dblPress = 2;
+	reg.ch_1.list1.sign = 0;
+	reg.ch_1.list1.longPress = 4;
+	
+	reg.ch_1.peer[0].peerNeedsBurst = 1;
+	reg.ch_1.peer[0].expectAES = 0;
 
-	peerdb[0][0] = 0x01086622;
-	peerdb[0][1] = 0x02086622;
+	reg.ch_2.peer[0].peerNeedsBurst = 1;
+
+	peerdb[0][0] = 0x013BD621; // 21D63B
+	peerdb[1][0] = 0x013BD621;
+	peerdb[2][0] = 0x013BD621;
 	
 }
 

@@ -75,12 +75,12 @@ void setup() {
 
 	// configure some buttons - config(tIdx, tPin, tTimeOutShortDbl, tLongKeyTime, tTimeOutLongDdbl, tCallBack)
 	bk[0].config(0,15,0,5000,5000,buttonState);									// button 0 for channel 0 for send pairing string, and double press for reseting device config
-	bk[1].config(1,14,(regMC.ch1.l1.dblPress*100),300+(regMC.ch1.l1.longPress*100),1000,buttonState); // channel 1 to 6 as push button
-	bk[2].config(2,8,(regMC.ch2.l1.dblPress*100),300+(regMC.ch2.l1.longPress*100),1000,buttonState);
+	bk[1].config(1,14,0,1100,1000,buttonState); // channel 1 to 6 as push button
+	bk[2].config(2,8,0,1100,1000,buttonState);
 
 	// init relay stuff
-	rl[0].config(1,0,3,0,0,0);													// configure the relay to monostable, on pin 3
-	rl[0].setCallBack(&relayState,&hm,1,1);
+	rl[0].config(3,0,12,0,0,0);													// configure the relay to monostable, on pin 3
+	//rl[0].setCallBack(&relayState,&hm,1,1);
 	
 	// show help screen and config
 	showHelp();																	// shows help screen on serial console
@@ -93,7 +93,7 @@ void loop() {
 	parser.poll();																// handle serial input from console
 	hm.poll();																	// HOMEMATIC task scheduler
 	bk->poll();																	// key handler poll
-	rl->poll();																	// relay handler poll
+	//rl->poll();																	// relay handler poll
 	
 	//if (nTimer < millis()) {
 	//	nTimer = millis() + 30000;												// jump in every 30 seconds
@@ -122,6 +122,13 @@ void buttonState(uint8_t idx, uint8_t state) {
 		if (state == 2) hm.ld.set(2);											// long key press could mean, you like to go for reseting the device
 		if (state == 6) hm.ld.set(0);											// time out for double long, stop slow blinking
 		if (state == 5) hm.reset();												// double long key press, reset the device
+	}
+
+	// channel 1 - 2
+	if ((idx >= 1) && (idx <= 2)) {
+		if ((state == 0) || (state == 1)) hm.sendPeerREMOTE(idx,0,0);			// short key or double short key press detected
+		if ((state == 2) || (state == 3)) hm.sendPeerREMOTE(idx,1,0);			// long or repeated long key press detected
+		if (state == 4) hm.sendPeerREMOTE(idx,2,0);								// end of long or repeated long key press detected
 	}
 }
 
@@ -166,7 +173,7 @@ void HM_Remote_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// data[1] = typically the key counter of the remote
 	
 	//Serial << F("\nRemote_Event; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
-	if (cnl == 1) rl[0].trigger40(((data[0] & 0x40)>>6),data[1],(void*)&regMC.ch1.l3);
+	if (cnl == 1) rl[0].trigger40(((data[0] & 0x40)>>6),data[1],(void*)&regMC.ch3.l3);
 }
 void HM_Sensor_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// sample needed!
