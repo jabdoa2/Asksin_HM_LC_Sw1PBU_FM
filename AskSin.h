@@ -477,7 +477,7 @@ class RL {
 struct s_prl {
 	uint8_t nbr;
 	RL *ptr[maxRelay];
-}static prl;
+};
 
 //- -----------------------------------------------------------------------------------------------------------------------
 //- serial parser and display functions -----------------------------------------------------------------------------------
@@ -542,7 +542,7 @@ struct s_pci {
 	BK      *ptr[maxInt];
 	uint8_t *pAddr[4];
 	uint8_t  lPort[4];
-} static pci;
+};
 void pcInt(uint8_t iPort);
 static volatile uint8_t wd_flag;
 ISR( WDT_vect );
