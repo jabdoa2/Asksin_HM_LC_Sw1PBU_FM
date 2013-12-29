@@ -1,9 +1,9 @@
 //- Software config --------------------------------------------------------------------------------------------------------
-//#define CC_DBG;															// debug messages of the CC module, ~0.2k program space
-//#define SM_DBG;															// debug messages of the SM module, ~1k program space
-#define AS_DBG;																// debug messages of the HM module, ~0.6k program space
-//#define AS_DBG_Explain;													// debug messages of the HM module, ~5k program space
-#define RL_DBG;
+//#define CC_DBG															// debug messages of the CC module, ~0.2k program space
+//#define SM_DBG															// debug messages of the SM module, ~1k program space
+#define AS_DBG																// debug messages of the HM module, ~0.6k program space
+//#define AS_DBG_Explain												// debug messages of the HM module, ~5k program space
+#define RL_DBG
 
 //- settings of HM device for HM class -------------------------------------------------------------------------------------
 const uint8_t devParam[] PROGMEM = {
@@ -250,7 +250,7 @@ static uint16_t regMcPtr[] = {
 //  if 'firstLoad' is defined, hm.init function will step in mainSettings function;
 //  be careful, whole eeprom block will be overwritten. you will loose your former settings...
 //- -----------------------------------------------------------------------------------------------------------------------
-#define firstLoad;
+#define firstLoad
 static void mainSettings(uint16_t *regPtr, uint16_t *peerPtr) {
 	static s_regs reg;
 	*regPtr = (uint16_t)&reg;
