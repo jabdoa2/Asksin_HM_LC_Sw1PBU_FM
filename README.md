@@ -11,7 +11,10 @@ Hardware:
 * Relay
 * Currency Sensor
 
-![](https://raw.github.com/jabdoa2/Asksin_HM_LC_Sw1PBU_FM/master/hardware/images/isp.jpg "Image with connected UART (thin wires) and ISP (colored wired)")
+To flash the device you need to solder the colored wires to the ISP port. For debugging you need the thin wires to the UART port:
+![](https://raw.github.com/jabdoa2/Asksin_HM_LC_Sw1PBU_FM/master/hardware/images/isp.jpg "HM-LC-Sw1PBU-FM with connected UART (thin wires) and ISP (colored wired)")
+
+More images can be found in the hardware/images/ subfolder.
 
 Instructions Hardware:
 * WARNING: DO NOT CONNECT THE BOARD to 230V. This will be dangous!
