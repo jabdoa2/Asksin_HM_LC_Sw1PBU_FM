@@ -11,6 +11,8 @@ Hardware:
 * Relay
 * Currency Sensor
 
+![Image with connected UART (thin wires) and ISP (colored wired)](https://github.com/jabdoa2/Asksin_HM_LC_Sw1PBU_FM/blob/master/hardware/images/isp.jpg)
+
 Instructions Hardware:
 * WARNING: DO NOT CONNECT THE BOARD to 230V. This will be dangous!
 * Only connect 3,3V. 5V may destroy the device.
