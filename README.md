@@ -11,7 +11,7 @@ Hardware:
 * Relay
 * Currency Sensor
 
-![Image with connected UART (thin wires) and ISP (colored wired)](https://github.com/jabdoa2/Asksin_HM_LC_Sw1PBU_FM/blob/master/hardware/images/isp.jpg)
+![](https://raw.github.com/jabdoa2/Asksin_HM_LC_Sw1PBU_FM/master/hardware/images/isp.jpg "Image with connected UART (thin wires) and ISP (colored wired)")
 
 Instructions Hardware:
 * WARNING: DO NOT CONNECT THE BOARD to 230V. This will be dangous!
