@@ -1,12 +1,17 @@
 Asksin\_HM\_LC\_Sw1PBU\_FM
 ======================
 
-Asksin Library ported to HM\-LC\-Sw1PBU\-FM
+Asksin Library ported to Homematic HM\-LC\-Sw1PBU\-FM
 
-Ported Askin Library from FHEM Forum to Atmel Atmega 644A. Runs with Arduino. Use Sanguino as target and change MMCU to atmega644.
+Ported Askin Library from FHEM Forum to Atmel ATmega 644A. Runs with Arduino.
+
+Hardware:
+* CC1100
+* Atmel ATmega 644A
+* Relay
+* Currency Sensor
 
 Instructions Hardware:
-
 * WARNING: DO NOT CONNECT THE BOARD to 230V. This will be dangous!
 * Only connect 3,3V. 5V may destroy the device.
 * The relay will not work while testing. Everything else will
@@ -21,11 +26,13 @@ Connect your ISP Programmer to the top board of the HM-LC-Sw1PBU-FM to the follo
 * MP6 - CLK
 * MP15 - GND
 
-Serial is also at the top board at those testpoints:
+UART is also at the top board at those testpoints:
 * MP9 - RX
 * MP10 - TX
 * MP16 - GND
 
+Other intersting ports:
+* MP13 + MP29 - Currency Sensor (PA0/ADC0 at ATmega). Not implemented in original Firmware. Need to be explored
 
 Instructions Software:
 * Install jabduino (https://github.com/jabdoa2/jabduino) into your Arduino hardware folder
