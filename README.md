@@ -47,3 +47,22 @@ Instructions Software:
 * Open Sketch "HM\_LC\_Sw1PBU\_FM"
 * Select Tools->Board->"Jabduino ATmega644A"
 * Compile and Upload with programmer (did not try the arduino bootloader)
+
+Tested/Working features:
+- [X] Pairing of central via Register.h
+- [ ] Pairing of central via Configbutton
+- [ ] getConfig Device
+- [ ] regSet Device in FHEM (untested)
+- [X] Peering of button via Register.h
+- [ ] Peering of button via peerChan in FHEM
+- [X] getConfig button in FHEM
+- [ ] regSet button in FHEM (untested)
+- [X] Controlling peered devices via button press
+- [X] Peering of actor via Register.h
+- [X] Peering of actor via peerChan in FHEM
+- [X] getConfig actor in FHEM
+- [ ] regSet actor in FHEM (untested)
+- [X] set on/set off in FHEM
+- [X] toogle in FHEM
+- [X] controlling actor via peered devices
+- [ ] Showing current status in FHEM (RF looks correct. May be bug in FHEM device)
