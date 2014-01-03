@@ -30,7 +30,7 @@ struct {
 	unsigned char  nbrChannels;
 	s_chDefType chDefType[4];
 	} const devDef = {
-	3                               // number of channels
+	4                               // number of channels
 	,{
 		{1,0,0}                // chn:0 type:regDev
 		,{2,6,4}                // chn:1 type:regChan_remote
