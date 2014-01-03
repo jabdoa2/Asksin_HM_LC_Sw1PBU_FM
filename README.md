@@ -49,20 +49,36 @@ Instructions Software:
 * Compile and Upload with programmer (did not try the arduino bootloader)
 
 Tested/Working features:
-- [X] Pairing of central via Register.h
+- [x] Pairing of central via Register.h
 - [ ] Pairing of central via Configbutton
 - [ ] getConfig Device
 - [ ] regSet Device in FHEM (untested)
-- [X] Peering of button via Register.h
+- [x] Peering of button via Register.h
 - [ ] Peering of button via peerChan in FHEM
-- [X] getConfig button in FHEM
+- [x] getConfig button in FHEM
 - [ ] regSet button in FHEM (untested)
-- [X] Controlling peered devices via button press
-- [X] Peering of actor via Register.h
-- [X] Peering of actor via peerChan in FHEM
-- [X] getConfig actor in FHEM
+- [x] Controlling peered devices via button press
+- [x] Peering of actor via Register.h
+- [x] Peering of actor via peerChan in FHEM
+- [x] getConfig actor in FHEM
 - [ ] regSet actor in FHEM (untested)
-- [X] set on/set off in FHEM
-- [X] toogle in FHEM
-- [X] controlling actor via peered devices
+- [x] set on/set off in FHEM
+- [x] toogle in FHEM
+- [x] controlling actor via peered devices
 - [ ] Showing current status in FHEM (RF looks correct. May be bug in FHEM device)
+
+Using device in FHEM:
+
+With current FHEM version you just need to paste the following code (in the command field on top).
+
+```
+{$HMConfig::culHmModel{"F0A9"} = {name=>"HM-LC-Sw1PBU-FM-CustomFW"            ,st=>'remoteAndSwitch'            ,cyc=>''      ,rxt=>''      ,lst=>'1,4'          ,chn=>"Btn:1:2,Sw:3:3"}}
+
+{$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW01"} = $HMConfig::culHmSubTypeSets{"THSensor"};
+{$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW02"} = $HMConfig::culHmSubTypeSets{"THSensor"};
+{$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW03"} = $HMConfig::culHmSubTypeSets{"switch"};
+
+{$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW01"}  = $HMConfig::culHmRegType{remote}};
+{$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW02"}  = $HMConfig::culHmRegType{remote}};
+{$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW03"}  = $HMConfig::culHmRegType{switch}};
+```
