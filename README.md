@@ -51,10 +51,10 @@ Instructions Software:
 Tested/Working features:
 - [x] Pairing of central via Register.h
 - [ ] Pairing of central via Configbutton
-- [ ] getConfig Device
-- [ ] regSet Device in FHEM (untested)
+- [ ] getConfig Device (not working)
+- [ ] regSet Device in FHEM (working only on channels)
 - [x] Peering of button via Register.h
-- [ ] Peering of button via peerChan in FHEM
+- [x] Peering of button via peerChan in FHEM
 - [x] getConfig button in FHEM
 - [x] regSet button in FHEM
 - [x] Controlling peered devices via button press
