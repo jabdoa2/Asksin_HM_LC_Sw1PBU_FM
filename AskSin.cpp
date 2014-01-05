@@ -1369,7 +1369,6 @@ void HM::exMsg(uint8_t *buf) {
 	Serial << F("\n\n");		
 	#endif
 }
-
 // - Storage Management ---------------------------------------------------------------------------------------------------
 void    HM::initRegisters() {
 	// check for magic number in eeprom to see if we have a first run
@@ -2157,7 +2156,7 @@ void RL::poll_cbd(void) {
 	cbsTme = 0;																	// nothing to do any more
 }
 
-
+#if defined(USE_SERIAL)
 //- -----------------------------------------------------------------------------------------------------------------------
 //- serial parser and display functions -----------------------------------------------------------------------------------
 //- Parser sketch from: http://jeelabs.org/2010/10/24/parsing-input-commands/
@@ -2288,6 +2287,7 @@ void showPGMText(PGM_P s) {
 	while (( c = pgm_read_byte(s++)) != 0) Serial << c;
 	Serial << '\n';
 }
+#endif
 
 
 //- -----------------------------------------------------------------------------------------------------------------------
@@ -2321,6 +2321,7 @@ uint32_t intTimeCvt(uint16_t iTime) {
 	return (uint32_t)tByte*(iTime>>5)*100;
 }
 
+#if defined(USE_SERIAL)
 //- serial print functions 
 char pHex(uint8_t val) {
 	const char hexDigits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -2343,6 +2344,7 @@ char pTime(void) {
 	Serial << F("(") << millis() << F(")\n");
 	return 0;
 }
+#endif
 
 //- interrupt handling
 void pcInt(uint8_t iPort) {

@@ -1,9 +1,13 @@
 //- Software config --------------------------------------------------------------------------------------------------------
+//#define USE_SERIAL
+
+#if defined(USE_SERIAL)
 //#define CC_DBG															// debug messages of the CC module, ~0.2k program space
 //#define SM_DBG															// debug messages of the SM module, ~1k program space
 #define AS_DBG																// debug messages of the HM module, ~0.6k program space
 //#define AS_DBG_Explain												// debug messages of the HM module, ~5k program space
 #define RL_DBG
+#endif
 
 //- settings of HM device for HM class -------------------------------------------------------------------------------------
 const uint8_t devParam[] PROGMEM = {

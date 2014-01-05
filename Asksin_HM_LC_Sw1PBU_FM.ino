@@ -18,6 +18,7 @@ const char helptext1[] PROGMEM = {												// help text for serial console
 	"\n"
 	"  $nn for HEX input (e.g. $AB,$AC ); b[] = byte, i[]. = integer " "\n"
 };
+#if defined(USE_SERIAL)
 InputParser::Commands cmdTab[] PROGMEM = {
 	{ 'h', 0, showHelp },
 	{ 'p', 0, sendPairing },
@@ -34,7 +35,7 @@ InputParser::Commands cmdTab[] PROGMEM = {
 	{ 0 }    
 };
 InputParser parser (50, cmdTab);
-
+#endif
 
 //- homematic communication -----------------------------------------------------------------------------------------------
 s_jumptable jumptable[] PROGMEM = {												// jump table for HM communication
@@ -55,8 +56,13 @@ uint32_t nTimer;
 
 //- main functions --------------------------------------------------------------------------------------------------------
 void setup() {
-	Serial.begin(57600);														// starting serial messages
 
+        #if defined(USE_SERIAL)
+	Serial.begin(57600);														// starting serial messages
+        #else
+        Serial.end();
+        #endif
+        
 	// some power savings
 	ADCSRA = 0;																	// disable ADC
 	power_all_disable();														// all devices off
@@ -82,16 +88,20 @@ void setup() {
 	rl[0].config(3,0,12,0,0,0);		// Channel 3 as aktor											// configure the relay to monostable, on pin 3
 	rl[0].setCallBack(&relayState,&hm,1,1);
 	
+        #if defined(USE_SERIAL)
 	// show help screen and config
 	showHelp();																	// shows help screen on serial console
 	showSettings();																// show device settings
 
-      Serial << F("version 023") << '\n';															// show device settings
+        Serial << F("version 024") << '\n';															// show device settings
+        #endif
 }
 
 void loop() {
 	// poll functions for serial console, HM module, button key handler and relay handler
+        #if defined(USE_SERIAL)
 	parser.poll();																// handle serial input from console
+        #endif
 	hm.poll();																	// HOMEMATIC task scheduler
 	bk->poll();																	// key handler poll
 	rl->poll();																	// relay handler poll
@@ -115,7 +125,9 @@ void buttonState(uint8_t idx, uint8_t state) {
 	//   5 - double long key press
 	//   6 - time out for a double long
 
+        #if defined(RL_DBG)
 	Serial << "i:" << idx << ", s:" << state << '\n';							// some debug message
+        #endif
 
 	// channel device
 	if (idx == 0) {
@@ -135,7 +147,9 @@ void buttonState(uint8_t idx, uint8_t state) {
 
 //- relay handler functions -----------------------------------------------------------------------------------------------
 void relayState(uint8_t cnl, uint8_t curStat, uint8_t nxtStat) {
+        #if defined(RL_DBG)
 	Serial << "c:" << cnl << " cS:" << curStat << " nS:" << nxtStat << '\n';	// some debug message
+        #endif
 }
 
 
@@ -147,7 +161,7 @@ void HM_Status_Request(uint8_t cnl, uint8_t *data, uint8_t len) {
 	#if defined(RL_DBG)	
 	Serial << F("\nxtStattus_Request; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
         #endif
-	if (cnl == 3) rl[0].sendStatus();											// send the current status
+	//if (cnl == 3) rl[0].sendStatus();											// send the current status
 }
 void HM_Set_Cmd(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// message from master to client for setting a defined value to client channel
@@ -179,7 +193,7 @@ void HM_Remote_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// cnl = indicates client device channel
 	// data[0] the remote channel, but also the information for long key press - ((data[0] & 0x40)>>6) extracts the long key press
 	// data[1] = typically the key counter of the remote
-        #if defined(RL_DBG)	
+        #if defined(USE_SERIAL)
 	Serial << F("\nRemote_Event; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
         #endif
 	if (cnl == 3) rl[0].trigger40(((data[0] & 0x40)>>6),data[1],(void*)&regMC.ch3.l3);
@@ -187,15 +201,17 @@ void HM_Remote_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 void HM_Sensor_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// sample needed!
 	// ACK is requested but will send automatically
+        #if defined(USE_SERIAL)
 	Serial << F("\nSensor_Event; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
+        #endif
 }
 void HM_Config_Changed(uint8_t cnl, uint8_t *data, uint8_t len) {
+        #if defined(USE_SERIAL)
 	Serial << F("config changed\n");
-
-
+        #endif
 }
 
-
+#if defined(USE_SERIAL)
 //- config functions ------------------------------------------------------------------------------------------------------
 void sendCmdStr() {																// reads a sndStr from console and put it in the send queue
  	memcpy(hm.send.data,parser.buffer,parser.count());							// take over the parsed byte data
@@ -265,3 +281,4 @@ void resetDevice() {
 	hm.reset();
 	Serial << F("reset done\n");
 }
+#endif
