@@ -56,12 +56,12 @@ Tested/Working features:
 - [x] Peering of button via Register.h
 - [ ] Peering of button via peerChan in FHEM
 - [x] getConfig button in FHEM
-- [ ] regSet button in FHEM (untested)
+- [x] regSet button in FHEM
 - [x] Controlling peered devices via button press
 - [x] Peering of actor via Register.h
 - [x] Peering of actor via peerChan in FHEM
 - [x] getConfig actor in FHEM
-- [ ] regSet actor in FHEM (untested)
+- [x] regSet actor in FHEM
 - [x] set on/set off in FHEM
 - [x] toogle in FHEM
 - [x] controlling actor via peered devices
