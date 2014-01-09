@@ -2013,7 +2013,7 @@ void RL::trigger40(uint8_t lngIn, uint8_t cnt, void *plist3) {
 	uint8_t actTp = (lngIn)?srly->lgActionType:srly->shActionType;				// get actTp = {off=>0,jmpToTarget=>1,toggleToCnt=>2,toggleToCntInv=>3}
 
 	if (actTp == 0) {															// off
-
+		nxtStat = 0; // do not change state
 	} else if ((actTp == 1) && (lngIn == 1)) {									// jmpToTarget
 		// SwJtOn {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
 		if      (curStat == 6) nxtStat = srly->lgSwJtOff;						// currently off
