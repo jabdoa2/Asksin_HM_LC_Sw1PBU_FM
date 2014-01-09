@@ -7,7 +7,7 @@ Ported Askin Library from FHEM Forum to Atmel ATmega 644A. Runs with Arduino.
 
 Hardware:
 * CC1100
-* Atmel ATmega 644A
+* Atmel ATmega 644A (http://www.atmel.com/Images/Atmel-8272-8-bit-AVR-microcontroller-ATmega164A_PA-324A_PA-644A_PA-1284_P_datasheet.pdf)
 * Relay
 * Currency Sensor
 
@@ -17,8 +17,8 @@ To flash the device you need to solder the colored wires to the ISP port. For de
 More images can be found in the hardware/images/ subfolder.
 
 Instructions Hardware:
-* WARNING: DO NOT CONNECT THE BOARD to 230V. This will be dangous!
-* Only connect 3,3V. 5V may destroy the device.
+* WARNING: DO NOT CONNECT THE BOARD to 230V. This will be dangous, since there is no voltage regulator! All ports including uart and SPI may have 230V potential to ground.
+* Controller runs at 3,3V at 8MHz. According to the datasheet up to 5.5V should be save (untested).
 * The relay will not work while testing. Everything else will
 * This will probably void your warrenty
 * You do this at your own risk
