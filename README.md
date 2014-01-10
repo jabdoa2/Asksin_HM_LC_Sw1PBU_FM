@@ -50,7 +50,7 @@ Instructions Software:
 
 Tested/Working features:
 - [x] Pairing of central via Register.h
-- [x] Pairing of central via Configbutton (untested)
+- [x] Pairing of central via Configbutton
 - [x] getConfig Device
 - [x] regSet Device in FHEM
 - [x] Peering of button via Register.h
