@@ -50,9 +50,9 @@ Instructions Software:
 
 Tested/Working features:
 - [x] Pairing of central via Register.h
-- [ ] Pairing of central via Configbutton (untested)
-- [X] getConfig Device
-- [ ] regSet Device in FHEM (untested)
+- [x] Pairing of central via Configbutton (untested)
+- [x] getConfig Device
+- [x] regSet Device in FHEM
 - [x] Peering of button via Register.h
 - [x] Peering of button via peerChan in FHEM
 - [x] getConfig button in FHEM
@@ -65,7 +65,7 @@ Tested/Working features:
 - [x] set on/set off in FHEM
 - [x] toogle in FHEM
 - [x] controlling actor via peered devices
-- [X] Showing current status in FHEM (Working with patch below. Will hopefully go upstream soon)
+- [x] Showing current status in FHEM (Working with patch below. Will hopefully go upstream soon)
 
 Using device in FHEM:
 
