@@ -1,12 +1,12 @@
-Asksin\_HM\_LC\_Sw1PBU\_FM
+Alternative Open Source Firmware for HM\_LC\_Sw1PBU\_FM
 ======================
 
-Asksin Library ported to Homematic HM\-LC\-Sw1PBU\-FM
+Asksin Library ported to Homematic HM\-LC\-Sw1PBU\-FM as Custom Open Source Firmware speaking BidCos.
 
-Ported Askin Library from FHEM Forum to Atmel ATmega 644A. Runs with Arduino.
+Ported Askin Library from FHEM Forum to Atmel ATmega 644A (https://github.com/trilu2000/AskSinLib). Runs with Arduino.
 
 Hardware:
-* CC1100
+* CC1100 on 868,3 MHz speaking BidCos
 * Atmel ATmega 644A (http://www.atmel.com/Images/Atmel-8272-8-bit-AVR-microcontroller-ATmega164A_PA-324A_PA-644A_PA-1284_P_datasheet.pdf)
 * Relay
 * Currency Sensor
@@ -44,7 +44,7 @@ Instructions Software:
     * Linux: /usr/share/arduino/hardware 
     * Windows: folder "hardware" in your Arduino directory
 * Open Arduino
-* Open Sketch "HM\_LC\_Sw1PBU\_FM"
+* Open Sketch "Asksin\_HM\_LC\_Sw1PBU\_FM"
 * Select Tools->Board->"Jabduino ATmega644A"
 * Compile and Upload with programmer (did not try the arduino bootloader)
 
@@ -57,7 +57,7 @@ Tested/Working features:
 - [x] Peering of button via peerChan in FHEM
 - [x] getConfig button in FHEM
 - [x] regSet button in FHEM
-- [x] Controlling peered devices via button press
+- [x] Controlling peered devices via button press (original homematic devices do work perfectly)
 - [x] Peering of actor via Register.h
 - [x] Peering of actor via peerChan in FHEM
 - [x] getConfig actor in FHEM
