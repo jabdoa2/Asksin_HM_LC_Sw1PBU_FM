@@ -51,8 +51,8 @@ Instructions Software:
 Tested/Working features:
 - [x] Pairing of central via Register.h
 - [ ] Pairing of central via Configbutton (untested)
-- [ ] getConfig Device (not working)
-- [ ] regSet Device in FHEM (not working because of broken getConfig)
+- [X] getConfig Device
+- [ ] regSet Device in FHEM (untested)
 - [x] Peering of button via Register.h
 - [x] Peering of button via peerChan in FHEM
 - [x] getConfig button in FHEM
@@ -65,7 +65,7 @@ Tested/Working features:
 - [x] set on/set off in FHEM
 - [x] toogle in FHEM
 - [x] controlling actor via peered devices
-- [ ] Showing current status in FHEM (RF looks correct. May be bug in FHEM device)
+- [X] Showing current status in FHEM (Working with patch below. Will hopefully go upstream soon)
 
 Using device in FHEM:
 
@@ -80,3 +80,11 @@ With current FHEM version you just need to paste the following code (in the comm
 {$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW02"}  = $HMConfig::culHmRegType{remote}};
 {$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW03"}  = $HMConfig::culHmRegType{switch}};
 ```
+
+To see the current status of the actor you need to patch your 10_CUL_HM.pm (Line 1071). Add remoteAndSwitch to the elsif:
+```
+  elsif($st =~ m /^(switch|dimmer|blindActuator|remoteAndSwitch)$/) {##########################
+    if (($mTp eq "02" && $p =~ m/^01/) ||  # handle Ack_Status
+        ($mTp eq "10" && $p =~ m/^06/)) { #    or Info_Status message here
+```
+
