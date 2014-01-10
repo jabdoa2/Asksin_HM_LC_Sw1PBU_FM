@@ -150,6 +150,12 @@ void relayState(uint8_t cnl, uint8_t curStat, uint8_t nxtStat) {
         #if defined(RL_DBG)
 	Serial << "c:" << cnl << " cS:" << curStat << " nS:" << nxtStat << '\n';	// some debug message
         #endif
+        if (curStat == 3)
+        {
+          hm.ld.set(1);
+        } else {
+          hm.ld.set(0);
+        }
 }
 
 
