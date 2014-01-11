@@ -1668,7 +1668,7 @@ uint8_t HM::addPeerFromMsg(uint8_t cnl, uint8_t *peer) {
 	#endif
 
 	// check if we have to add another peer, if not return the status of adding the first peer
-	if (peer[4] == 0) return ret;
+	if (peer[4] == 0 || peer[3] == peer[4]) return ret;
 
 	// if we are here we have to copy a second peer to database, if everything is ok we got a 1 back
 	tPeer[3] = peer[4];															// copy the second channel to the peer
