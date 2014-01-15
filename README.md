@@ -9,7 +9,7 @@ Hardware:
 * CC1100 on 868,3 MHz speaking BidCos
 * Atmel ATmega 644A (http://www.atmel.com/Images/Atmel-8272-8-bit-AVR-microcontroller-ATmega164A_PA-324A_PA-644A_PA-1284_P_datasheet.pdf)
 * Relay
-* Currency Sensor
+* Current Sensor: Shunt amplified by TLC272 OpAmp
 
 To flash the device you need to solder the colored wires to the ISP port. For debugging you need the thin wires to the UART port:
 ![](https://raw.github.com/jabdoa2/Asksin_HM_LC_Sw1PBU_FM/master/hardware/images/isp.jpg "HM-LC-Sw1PBU-FM with connected UART (thin wires) and ISP (colored wired)")
@@ -37,7 +37,7 @@ UART is also at the top board at those testpoints:
 * MP16 - GND
 
 Other intersting ports:
-* MP13 + MP29 - Currency Sensor (PA0/ADC0 at ATmega). Not implemented in original Firmware. Need to be explored
+* MP13 + MP29 - Current Sensor (PA0/ADC0 at ATmega). Not implemented in original Firmware. Need to be explored
 
 Instructions Software:
 * Install jabduino (https://github.com/jabdoa2/jabduino) into your Arduino hardware folder
