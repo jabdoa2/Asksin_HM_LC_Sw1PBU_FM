@@ -9,7 +9,7 @@ Hardware:
 * CC1100 on 868,3 MHz speaking BidCos
 * Atmel ATmega 644A (http://www.atmel.com/Images/Atmel-8272-8-bit-AVR-microcontroller-ATmega164A_PA-324A_PA-644A_PA-1284_P_datasheet.pdf)
 * Relay
-* Current Sensor: Shunt amplified by TLC272 OpAmp
+* Current Sensor: Shunt amplified by TLC272 OpAmp (http://www.ti.com/lit/ds/symlink/tlc272.pdf)
 
 To flash the device you need to solder the colored wires to the ISP port. For debugging you need the thin wires to the UART port:
 ![](https://raw.github.com/jabdoa2/Asksin_HM_LC_Sw1PBU_FM/master/hardware/images/isp.jpg "HM-LC-Sw1PBU-FM with connected UART (thin wires) and ISP (colored wired)")
