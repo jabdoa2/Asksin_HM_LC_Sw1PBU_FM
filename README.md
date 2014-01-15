@@ -66,6 +66,10 @@ Tested/Working features:
 - [x] toogle in FHEM
 - [x] controlling actor via peered devices
 - [x] Showing current status in FHEM (Working with patch below. Will hopefully go upstream soon)
+- [x] Reading Current sensor and sending it via RF (message type 5E. Same format as HM-ES-PMSw1-Pl)
+- [ ] Interpreting current sensor values (10 bit value. what does 1024 mean? 10A?)
+- [ ] Controlling actor by current sensor
+- [ ] Sending remote event by current sensor
 
 Using device in FHEM:
 
@@ -81,10 +85,35 @@ With current FHEM version you just need to paste the following code (in the comm
 {$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW03"}  = $HMConfig::culHmRegType{switch}};
 ```
 
-To see the current status of the actor you need to patch your 10_CUL_HM.pm (Line 1071). Add remoteAndSwitch to the elsif:
+To see the current status of the actor and the read the current sensor you need to patch your 10_CUL_HM.pm (line 1071):
+1. Change:
 ```
   elsif($st =~ m /^(switch|dimmer|blindActuator|remoteAndSwitch)$/) {##########################
-    if (($mTp eq "02" && $p =~ m/^01/) ||  # handle Ack_Status
-        ($mTp eq "10" && $p =~ m/^06/)) { #    or Info_Status message here
+```
+To:
+```
+  elsif($st =~ m /^(switch|dimmer|blindActuator)$/) {##########################
 ```
 
+2. After (line 1176):
+```
+         push @event,"battery:" . (($err&0x80) ? "low" : "ok" );
+       }
+     }
+```
+Add the following:
+```
+    elsif ($mTp eq "5E" ||$mTp eq "5F" ) {  #    POWER_EVENT_CYCLIC
+      $shash = $modules{CUL_HM}{defptr}{$src."03"}
+                             if($modules{CUL_HM}{defptr}{$src."03"});
+      my ($eCnt,$P,$I,$U,$F) = unpack 'A6A6A4A4A2',$p;
+#      push @event, "energy:"   .(hex($eCnt)&0x7fffff)/10;# 0.0  ..838860.7  Wh
+#      push @event, "power:"    . hex($P   )/100;         # 0.0  ..167772.15 W
+      push @event, "current:"  . hex($I   )/1;           # 0.0  ..65535.0   mA
+#      push @event, "voltage:"  . hex($U   )/10;          # 0.0  ..6553.5    mV
+#      push @event, "frequency:".(hex($F   )/100+50);      # 48.72..51.27     Hz
+#      push @event, "boot:"     .((hex($eCnt)&0x800000)?"on":"off");
+    }
+```
+
+or use the patch in fhem/10_CUL_HM.pm.patch (apply with patch -p1 < 10_CUL_HM.pm.patch). Afterwards restart fhem.

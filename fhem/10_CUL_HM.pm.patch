@@ -1,0 +1,28 @@
+--- /opt/fhem/FHEM/10_CUL_HM.pm	2014-01-15 23:57:41.840067190 +0100
+@@ -1068,7 +1086,7 @@
+                  if ($hHash && $hHash->{helper}{param}{offAtPon});
+     }
+   }
+-  elsif($st =~ m /^(switch|dimmer|blindActuator|remoteAndSwitch)$/) {##########################
++  elsif($st =~ m /^(switch|dimmer|blindActuator)$/) {##########################
+     if (($mTp eq "02" && $p =~ m/^01/) ||  # handle Ack_Status
+         ($mTp eq "10" && $p =~ m/^06/)) { #    or Info_Status message here
+ 
+@@ -1155,17 +1173,6 @@
+         push @event,"battery:" . (($err&0x80) ? "low" : "ok" );
+       }
+     }
+-    elsif ($mTp eq "5E" ||$mTp eq "5F" ) {  #    POWER_EVENT_CYCLIC
+-      $shash = $modules{CUL_HM}{defptr}{$src."03"}
+-                             if($modules{CUL_HM}{defptr}{$src."03"});
+-      my ($eCnt,$P,$I,$U,$F) = unpack 'A6A6A4A4A2',$p;
+-#      push @event, "energy:"   .(hex($eCnt)&0x7fffff)/10;# 0.0  ..838860.7  Wh
+-#      push @event, "power:"    . hex($P   )/100;         # 0.0  ..167772.15 W
+-      push @event, "current:"  . hex($I   )/1;           # 0.0  ..65535.0   mA
+-#      push @event, "voltage:"  . hex($U   )/10;          # 0.0  ..6553.5    mV
+-#      push @event, "frequency:".(hex($F   )/100+50);      # 48.72..51.27     Hz
+-#      push @event, "boot:"     .((hex($eCnt)&0x800000)?"on":"off");
+-    }
+   }
+   elsif($st =~ m /^(remote|pushButton|swi)$/) { ###############################
+     if($mTp =~ m/^4./ && $p =~ m/^(..)(..)/) {

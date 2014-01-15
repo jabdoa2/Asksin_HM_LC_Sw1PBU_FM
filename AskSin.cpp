@@ -515,6 +515,29 @@ void HM::sendACKStatus(uint8_t cnl, uint8_t status, uint8_t douolo) {
 	//send_prep(recv_rCnt,0x80,0x02,regDev.pairCentral,send_payLoad,5);	// prepare the message
 	send_prep(recv_rCnt,0x80,0x02,recv_reID,send_payLoad,5);					// prepare the message
 }
+void HM::sendSensorData(uint32_t energyCounter, uint32_t power, uint16_t current, uint16_t voltage, uint8_t frequency) {
+	if (memcmp(regDev.pairCentral,broadCast,3) == 0) return;					// not paired, nothing to send
+
+        // energy counter 3 Bytes
+        // power: 3 Bytes
+        // current: 2 Bytes
+        // voltage: 2 Bytes
+        // frequency: 1 Byte
+        
+	send_payLoad[0] = energyCounter >> 16;
+	send_payLoad[1] = energyCounter >> 8;
+	send_payLoad[2] = energyCounter;
+	send_payLoad[3] = power >> 16;
+	send_payLoad[4] = power >> 8;
+	send_payLoad[5] = power;
+        send_payLoad[6] = current >> 8;
+        send_payLoad[7] = current;
+        send_payLoad[8] = voltage >> 8;
+        send_payLoad[9] = voltage;
+        send_payLoad[10] = frequency;
+
+	send_prep(send.mCnt++,0x80,0x5E,regDev.pairCentral,send_payLoad,11);				// prepare the message															// short led blink
+}
 void HM::sendPeerREMOTE(uint8_t button, uint8_t longPress, uint8_t lowBat) {
 	// no data needed, because it is a (40)REMOTE EVENT
 	// "40"          => { txt => "REMOTE"      , params => {

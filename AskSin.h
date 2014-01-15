@@ -228,7 +228,8 @@ class HM {
 	void sendPeerRAW(uint8_t cnl, uint8_t type, uint8_t *data, uint8_t len);	// send event to all peers listed in the peers database by channel, type specifies the type of the message, data and len delivers the content of the event
 	void send_ACK(void);														// OK, ACK sending function
 	void send_NACK(void);														// OK, NACK sending function
-	
+	void sendSensorData(uint32_t energyCounter, uint32_t power, uint16_t current, uint16_t voltage, uint8_t frequency);
+
 	// some debug functions
 	void printSettings(void);
 	void printConfig(void);

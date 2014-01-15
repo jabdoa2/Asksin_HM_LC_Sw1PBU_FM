@@ -52,7 +52,7 @@ BK bk[3];																		// declare 1 inxtStatnces of the button key handler
 RL rl[1];																		// declare one inxtStatnce of relay class
 
 //- some timer test
-uint32_t nTimer;
+unsigned long nTimer;
 
 //- main functions --------------------------------------------------------------------------------------------------------
 void setup() {
@@ -64,14 +64,14 @@ void setup() {
         #endif
         
 	// some power savings
-	ADCSRA = 0;																	// disable ADC
+	//ADCSRA = 0;																	// disable ADC
 	power_all_disable();														// all devices off
 	power_timer0_enable();														// we need timer0 for delay function
 	//power_timer2_enable();													// we need timer2 for PWM
 	power_usart0_enable();														// it's the serial console
 	//power_twi_enable();														// i2c interface, not needed yet
 	power_spi_enable();															// enables SPI master
-	//power_adc_enable();
+	power_adc_enable();
 
 	// init HM module
 	hm.init();																	// initialize HM module
@@ -96,7 +96,8 @@ void setup() {
         Serial << F("version 024") << '\n';															// show device settings
         #endif
 }
-
+int i;
+uint16_t current;
 void loop() {
 	// poll functions for serial console, HM module, button key handler and relay handler
         #if defined(USE_SERIAL)
@@ -105,12 +106,21 @@ void loop() {
 	hm.poll();																	// HOMEMATIC task scheduler
 	bk->poll();																	// key handler poll
 	rl->poll();																	// relay handler poll
-	
-	//if (nTimer < millis()) {
-	//	nTimer = millis() + 30000;												// jump in every 30 seconds
-	//	Serial << "t:" << (millis()/1000) << '\n';								// time stamp
-	//	hm.stayAwake(100);														// wait 100ms to get the output in console
-	//}
+
+	if (nTimer < millis()) {
+		nTimer = millis() + 30000;
+                runCurrentSense();
+	}
+        
+}
+
+void runCurrentSense()
+{
+        current = analogRead(i) << 6;  // Read AD and shift 6 bytes (10 bit ADC to 16 bit value)
+        //Serial << F("Sending current sense data") << '\n';
+        //Serial << current;
+        //Serial << '\n';
+        hm.sendSensorData(0, 0, current, 0, 0); // send message
 }
 
 
