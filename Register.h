@@ -32,14 +32,15 @@ struct s_chDefType{
 };
 struct {
 	unsigned char  nbrChannels;
-	s_chDefType chDefType[4];
+	s_chDefType chDefType[5];
 	} const devDef = {
-	4                               // number of channels
+	5                               // number of channels
 	,{
 		{1,0,0}                // chn:0 type:regDev
 		,{2,6,4}                // chn:1 type:regChan_remote
 		,{2,15,12}                // chn:2 type:regChan_remote
 		,{0,24,20}                // chn:3 type:regChan_actor
+		,{0,33,28}                // chn:4 type:regChan_actor
 	}
 };
 struct s_sliceStrTpl {
@@ -84,6 +85,20 @@ const s_sliceStrTpl sliceStr[] = {
 	{0x82, 0x0b, 0x007c},
 	{0x02, 0x0b, 0x0087},
 	{0x82, 0x0b, 0x0092},
+
+	{0x08, 0x01, 0x009D},           // chn:4 lst:1
+	{0x02, 0x0b, 0x009E},           // chn:4 lst:3
+	{0x82, 0x0b, 0x00A9},
+	{0x02, 0x0b, 0x00B4},
+	{0x82, 0x0b, 0x00BF},
+	{0x02, 0x0b, 0x00CA},
+	{0x82, 0x0b, 0x00D5},
+	{0x02, 0x0b, 0x00E0},
+	{0x82, 0x0b, 0x00EB},
+	{0x02, 0x0b, 0x0101},
+	{0x82, 0x0b, 0x010C},
+	{0x02, 0x0b, 0x0117},
+	{0x82, 0x0b, 0x0122},
 };
 struct s_listTpl {
 	unsigned char ListNo;
@@ -116,7 +131,7 @@ struct {
 
 //- -----------------------------------------------------------------------------------------------------------------------
 // - peer db config -------------------------------------------------------------------------------------------------------
-#define maxChannel 3
+#define maxChannel 4
 #define maxPeer    6
 static uint32_t peerdb[maxChannel][maxPeer];
 const uint8_t peermax[] = {6,6,6};
@@ -200,6 +215,7 @@ struct s_regs {
 	s_regChan_remote ch_1;
 	s_regChan_remote ch_2;
 	s_regChan_actor ch_3;
+	s_regChan_actor ch_4;
 };
 
 struct s_EEPROM {
@@ -226,6 +242,7 @@ struct s_regCpy {
 	s_cpy_regChan_remote ch1;
 	s_cpy_regChan_remote ch2;
 	s_cpy_regChan_actor ch3;
+	s_cpy_regChan_actor ch4;
 } static regMC;
 
 static uint16_t regMcPtr[] = {
@@ -254,7 +271,7 @@ static uint16_t regMcPtr[] = {
 //  if 'firstLoad' is defined, hm.init function will step in mainSettings function;
 //  be careful, whole eeprom block will be overwritten. you will loose your former settings...
 //- -----------------------------------------------------------------------------------------------------------------------
-#define firstLoad
+//#define firstLoad
 static void mainSettings(uint16_t *regPtr, uint16_t *peerPtr) {
 	static s_regs reg;
 	*regPtr = (uint16_t)&reg;

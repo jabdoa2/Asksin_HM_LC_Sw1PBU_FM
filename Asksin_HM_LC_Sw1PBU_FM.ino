@@ -51,8 +51,19 @@ HM hm (jumptable, regMcPtr);													// declare class for handling HM commun
 BK bk[3];																		// declare 1 inxtStatnces of the button key handler
 RL rl[1];																		// declare one inxtStatnce of relay class
 
-//- some timer test
-unsigned long nTimer;
+//- current sensor
+unsigned long lastCurrentInfoSentTime = 0;
+unsigned long lastCurrentSenseTime = 0;
+unsigned long currentImpulsStart = 0;
+unsigned long lastImpulsLength = 0;
+boolean currentSense = false;
+boolean lastCurrentSense = false;
+boolean lastCurrentPin = false;
+static unsigned int pinCurrent = 31;
+
+ISR(PCINT0_vect) {
+	currentImpuls();
+}
 
 //- main functions --------------------------------------------------------------------------------------------------------
 void setup() {
@@ -64,14 +75,14 @@ void setup() {
         #endif
         
 	// some power savings
-	//ADCSRA = 0;																	// disable ADC
+	ADCSRA = 0;																	// disable ADC
 	power_all_disable();														// all devices off
 	power_timer0_enable();														// we need timer0 for delay function
 	//power_timer2_enable();													// we need timer2 for PWM
 	power_usart0_enable();														// it's the serial console
 	//power_twi_enable();														// i2c interface, not needed yet
 	power_spi_enable();															// enables SPI master
-	power_adc_enable();
+	//power_adc_enable();
 
 	// init HM module
 	hm.init();																	// initialize HM module
@@ -93,10 +104,15 @@ void setup() {
 	showHelp();																	// shows help screen on serial console
 	showSettings();																// show device settings
 
-        Serial << F("version 024") << '\n';															// show device settings
+        Serial << F("version 025") << '\n';															// show device settings
         #endif
+        
+		// Enable interrupt on PA0
+        pinMode(pinCurrent, INPUT);
+        PCMSK0 |= (1<<PCINT0);
+        PCICR |= (1<<PCIE0);
 }
-int i;
+
 uint16_t current;
 void loop() {
 	// poll functions for serial console, HM module, button key handler and relay handler
@@ -107,22 +123,49 @@ void loop() {
 	bk->poll();																	// key handler poll
 	rl->poll();																	// relay handler poll
 
-	if (nTimer < millis()) {
-		nTimer = millis() + 30000;
-                runCurrentSense();
+	if (millis() - lastCurrentInfoSentTime > 150000) {
+		lastCurrentInfoSentTime = millis();
+                hm.sendSensorData(0, 0, lastImpulsLength, 0, 0); // send message
+                lastImpulsLength = 0;
 	}
-        
+	if (millis() - lastCurrentSenseTime > 100) {
+		lastCurrentSenseTime = millis();
+
+                // If pin is currently high (and has not been low during the period)
+                if (digitalRead(pinCurrent))
+                {
+                  currentSense = true;
+                }
+                // Act on changes
+                if (currentSense != lastCurrentSense)
+                {
+//                  Serial << F("New Powersense: ") << currentSense << '\n';
+                  hm.sendInfoActuatorStatus(4,currentSense?0xC8:0x00,0);
+                  lastCurrentSense = currentSense;
+                }
+                currentSense = 0;
+	}
 }
 
-void runCurrentSense()
+void currentImpuls()
 {
-        current = analogRead(i) << 6;  // Read AD and shift 6 bytes (10 bit ADC to 16 bit value)
-        //Serial << F("Sending current sense data") << '\n';
-        //Serial << current;
-        //Serial << '\n';
-        hm.sendSensorData(0, 0, current, 0, 0); // send message
+  cli();
+  boolean actualCurrentPin = digitalRead(pinCurrent);
+  if (lastCurrentPin == actualCurrentPin) {
+    sei();
+    return;
+  }
+  lastCurrentPin = actualCurrentPin;
+  if (actualCurrentPin) { // Impuls start
+    currentImpulsStart = micros();
+    currentSense = true;
+  } else { // Impuls end
+    lastImpulsLength = micros() - currentImpulsStart;
+    currentImpulsStart = 0;
+  }
+  sei();
+  return;
 }
-
 
 //- key handler functions -------------------------------------------------------------------------------------------------
 void buttonState(uint8_t idx, uint8_t state) {
