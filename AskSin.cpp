@@ -1972,33 +1972,18 @@ void BK::poll_btn() {
 //- relay functions -------------------------------------------------------------------------------------------------------
 //- -----------------------------------------------------------------------------------------------------------------------
 // public function for setting the module
-void RL::config(uint8_t cnl, uint8_t type, uint8_t pinOn1, uint8_t pinOn2, uint8_t pinOff1, uint8_t pinOff2) {
+void RL::config(uint8_t cnl, void msgCallBack(uint8_t, uint8_t, uint8_t), void adjRlyCallback(uint8_t cnl, uint8_t tValue), HM *statCallBack, uint8_t minDelay, uint8_t randomDelay) {
 	// store config settings in class
-	hwType = type;																// 0 indicates a monostable, 1 a bistable relay
-	hwPin[0] = pinOn1;															// first 2 bytes for on, second two for off
-	hwPin[1] = pinOn2;	
-	hwPin[2] = pinOff1;	
-	hwPin[3] = pinOff2;		
+	mDel = minDelay;															// remember minimum delay for sending the status
+	rDel = (randomDelay)?randomDelay:1;											// remember random delay for sending the status
+	cbS = statCallBack;															// call back address for sending status and ACK
+	cbM = msgCallBack;
+        adjRlyCb = adjRlyCallback;	
 
-	// set output pins
-	for (uint8_t i = 0; i < 4; i++) {											// set output pins
-		if (hwPin[i] > 0) {														// only if we have a valid pin
-			pinMode(hwPin[i], OUTPUT);											// set to output
-			digitalWrite(hwPin[i],0);											// set port to low
-		}
-	}
-	
 	prl.ptr[prl.nbr++] = this;													// register inxtStatnce in struct
 	cnlAss = cnl;																// stores the channel for the current instance
 	curStat = 6;																// set relay status to off
 	adjRly(0);																	// set relay to a defined status
-}
-void RL::setCallBack(void msgCallBack(uint8_t, uint8_t, uint8_t), HM *statCallBack, uint8_t minDelay, uint8_t randomDelay) {
-	mDel = minDelay;															// remember minimum delay for sending the status
-	rDel = (randomDelay)?randomDelay:1;											// remember random delay for sending the status
-	cbS = statCallBack;															// call back address for sending status and ACK
-	cbM = msgCallBack;															// remember the address
-	//cbsTme = millis() + ((uint32_t)mDel*1000) + random(((uint32_t)rDel*1000)); // set the timer for sending the status
 }
 
 // public functions for triggering some action
@@ -2024,7 +2009,7 @@ void RL::trigger41(uint8_t lngIn, uint8_t val, void *plist3) {
 	rlyTime = millis();															// changed some timers, activate poll function
 }
 void RL::trigger40(uint8_t lngIn, uint8_t cnt, void *plist3) {
-	srly = (s_srly*)plist3;														// copy list3 to pointer
+	s_peer_regChan_actor* srly = (s_peer_regChan_actor*)plist3;														// copy list3 to pointer
 	static uint8_t rCnt;														// to identify multi execute
 	
 	// check for repeated message	
@@ -2090,31 +2075,14 @@ void RL::poll(void) {
 
 // private functions for setting relay and getting current status
 void RL::adjRly(uint8_t tValue) {
-	if (curStat == nxtStat) return;												// nothing to do
-	if (hwType == 0) {															// monostable - on
-		if (hwPin[0] > 0) digitalWrite(hwPin[0],tValue);						// write the state to the port pin
-		if (hwPin[1] > 0) digitalWrite(hwPin[1],tValue);
 
-		} else if ((hwType == 1) && (tValue == 1)) {								// bistable - on
-		if (hwPin[0] > 0) digitalWrite(hwPin[0],1);								// port pins to on
-		if (hwPin[1] > 0) digitalWrite(hwPin[1],1);
-		delay(50);																// wait a short time
-		if (hwPin[0] > 0) digitalWrite(hwPin[0],0);								// port pins to off again
-		if (hwPin[1] > 0) digitalWrite(hwPin[1],0);
-		
-		} else if ((hwType == 1) && (tValue == 0)) {								// bistable - off
-		if (hwPin[2] > 0) digitalWrite(hwPin[2],1);								// port pins to on
-		if (hwPin[3] > 0) digitalWrite(hwPin[3],1);
-		delay(50);																// wait a short time
-		if (hwPin[2] > 0) digitalWrite(hwPin[2],0);								// port pins to off again
-		if (hwPin[3] > 0) digitalWrite(hwPin[3],0);
-	}
 	#if defined(RL_DBG)															// some debug message
 	Serial << F("RL:adjRly, curS:") << curStat << F(", nxtS:") << nxtStat << '\n';
 	#endif
 
+        adjRlyCb(cnlAss, tValue);
+
 	cbsTme = millis() + ((uint32_t)mDel*1000) + random(((uint32_t)rDel*1000));	// set the timer for sending the status
-	//Serial << "cbsT:" << cbsTme << '\n';
 }
 uint8_t RL::getRly(void) {
 	// curStat could be {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
@@ -2132,10 +2100,10 @@ void RL::poll_rly(void) {
 	rlyTime = 0;																// freeze per default
 
 	// set relay - {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
-	if (nxtStat == 3) {															// set relay on
+	if (nxtStat == 3 && curStat != 3) {															// set relay on
 		adjRly(1); curStat = 3;													// adjust relay, status will send from adjRly()
 
-	} else if (nxtStat == 6) {													// set relay off
+	} else if (nxtStat == 6 && curStat != 6) {													// set relay off
 		adjRly(0); curStat = 6;													// adjust relay, status will send from adjRly()
 	}
 	
@@ -2177,6 +2145,23 @@ void RL::poll_cbd(void) {
 	if ((cbsTme == 0) || (cbsTme > millis())) return;							// timer set to 0 or time for action not reached, leave
 	if (cbS) cbS->sendInfoActuatorStatus(cnlAss,getRly(),0);					// call back
 	cbsTme = 0;																	// nothing to do any more
+}
+
+int RL::getNxtStat() {
+  return nxtStat; 
+}
+int RL::getCurStat() {
+  return curStat;
+}
+void RL::setNxtStat(int newNxtStat) {
+  if (nxtStat == newNxtStat) return;
+  nxtStat = newNxtStat;
+  rlyTime = millis();
+}
+void RL::setCurStat(int newCurStat) {
+  if (curStat == newCurStat) return;
+  curStat = newCurStat;
+  cbsTme = millis() + ((uint32_t)mDel*1000) + random(((uint32_t)rDel*1000));  
 }
 
 #if defined(USE_SERIAL)

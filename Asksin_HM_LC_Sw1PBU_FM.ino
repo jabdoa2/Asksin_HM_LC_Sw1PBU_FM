@@ -49,7 +49,7 @@ s_jumptable jumptable[] PROGMEM = {												// jump table for HM communicatio
 };
 HM hm (jumptable, regMcPtr);													// declare class for handling HM communication
 BK bk[3];																		// declare 1 inxtStatnces of the button key handler
-RL rl[1];																		// declare one inxtStatnce of relay class
+RL rl[2];																		// declare one inxtStatnce of relay class
 
 //- current sensor
 unsigned long lastCurrentInfoSentTime = 0;
@@ -96,9 +96,12 @@ void setup() {
 	bk[2].config(2,8,0,1000,5000,buttonState);
 
 	// init relay stuff
-	rl[0].config(3,0,12,0,0,0);		// Channel 3 as aktor											// configure the relay to monostable, on pin 3
-	rl[0].setCallBack(&relayState,&hm,1,1);
+        pinMode(12, OUTPUT);
+	rl[0].config(3,&relayState,&setInternalRelay,&hm,1,1);
 	
+        // fake relay channel for current sensor
+        rl[1].config(4,&relayState,&setVirtualRelay,&hm,1,1);
+
         #if defined(USE_SERIAL)
 	// show help screen and config
 	showHelp();																	// shows help screen on serial console
@@ -107,7 +110,7 @@ void setup() {
         Serial << F("version 025") << '\n';															// show device settings
         #endif
         
-		// Enable interrupt on PA0
+        // Enable interrupt on PA0
         pinMode(pinCurrent, INPUT);
         PCMSK0 |= (1<<PCINT0);
         PCICR |= (1<<PCIE0);
@@ -137,13 +140,16 @@ void loop() {
                   currentSense = true;
                 }
                 // Act on changes
+                rl[1].setCurStat(currentSense?3:6);
+                
+                /*
                 if (currentSense != lastCurrentSense)
                 {
-//                  Serial << F("New Powersense: ") << currentSense << '\n';
-                  hm.sendInfoActuatorStatus(4,currentSense?0xC8:0x00,0);
+                  Serial << F("New Powersense: ") << currentSense << '\n';
+//                  hm.sendInfoActuatorStatus(4,currentSense?0xC8:0x00,0);
                   lastCurrentSense = currentSense;
-                }
-                currentSense = 0;
+                }*/
+                currentSense = false;
 	}
 }
 
@@ -203,12 +209,26 @@ void relayState(uint8_t cnl, uint8_t curStat, uint8_t nxtStat) {
         #if defined(RL_DBG)
 	Serial << "c:" << cnl << " cS:" << curStat << " nS:" << nxtStat << '\n';	// some debug message
         #endif
-        if (curStat == 3)
-        {
-          hm.ld.set(1);
-        } else {
-          hm.ld.set(0);
+        if (cnl == 3) {
+          if (curStat == 3)
+          {
+            hm.ld.set(1);
+          } else {
+            hm.ld.set(0);
+          }
         }
+}
+
+void setInternalRelay(uint8_t cnl, uint8_t tValue) {
+  digitalWrite(12,tValue);
+}
+
+void setVirtualRelay(uint8_t cnl, uint8_t tValue) {
+  if (rl[0].getCurStat() == 3) {
+    rl[0].setNxtStat(6);
+  } else {
+    rl[0].setNxtStat(3);
+  }
 }
 
 
@@ -231,6 +251,7 @@ void HM_Set_Cmd(uint8_t cnl, uint8_t *data, uint8_t len) {
 	Serial << F("\nSet_Cmd; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
         #endif
 	if (cnl == 3) rl[0].trigger11(data[0], data+1, (len>4)?data+3:NULL);
+	if (cnl == 4) rl[1].trigger11(data[0], data+1, (len>4)?data+3:NULL);
 }
 void HM_Reset_Cmd(uint8_t cnl, uint8_t *data, uint8_t len) {
   	#if defined(RL_DBG)	
@@ -256,6 +277,7 @@ void HM_Remote_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 	Serial << F("\nRemote_Event; cnl: ") << pHex(cnl) << F(", data: ") << pHex(data,len) << "\n\n";
         #endif
 	if (cnl == 3) rl[0].trigger40(((data[0] & 0x40)>>6),data[1],(void*)&regMC.ch3.l3);
+	if (cnl == 4) rl[1].trigger40(((data[0] & 0x40)>>6),data[1],(void*)&regMC.ch4.l3);
 }
 void HM_Sensor_Event(uint8_t cnl, uint8_t *data, uint8_t len) {
 	// sample needed!
