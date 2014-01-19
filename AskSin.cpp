@@ -2405,9 +2405,10 @@ void pcInt(uint8_t iPort) {
 ISR( WDT_vect ) {
 	wd_flag = 1;
 }
+/*
 ISR(PCINT0_vect) {
 	pcInt(0);
-}
+}*/
 ISR(PCINT1_vect) {
 	pcInt(1);
 }
