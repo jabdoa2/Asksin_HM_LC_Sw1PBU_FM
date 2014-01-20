@@ -60,12 +60,14 @@ boolean currentSense = false;
 boolean lastCurrentSense = false;
 boolean lastCurrentPin = false;
 static unsigned int pinCurrent = 31;
+static unsigned int pinRelay = 12;
 static unsinged long minImpulsLength = 500;
 
 ISR(PCINT0_vect) {
 	currentImpuls();
 }
 
+boolean isInitialized = false;
 //- main functions --------------------------------------------------------------------------------------------------------
 void setup() {
 
@@ -97,7 +99,7 @@ void setup() {
 	bk[2].config(2,8,0,1000,5000,buttonState);
 
 	// init relay stuff
-        pinMode(12, OUTPUT);
+        pinMode(pinRelay, OUTPUT);
 	rl[0].config(3,&relayState,&setInternalRelay,&hm,1,1);
 	
         // fake relay channel for current sensor
@@ -115,6 +117,8 @@ void setup() {
         pinMode(pinCurrent, INPUT);
         PCMSK0 |= (1<<PCINT0);
         PCICR |= (1<<PCIE0);
+
+	isInitialized = true;
 }
 
 uint16_t current;
@@ -223,10 +227,11 @@ void relayState(uint8_t cnl, uint8_t curStat, uint8_t nxtStat) {
 }
 
 void setInternalRelay(uint8_t cnl, uint8_t tValue) {
-  digitalWrite(12,tValue);
+  digitalWrite(pinRelay,tValue);
 }
 
 void setVirtualRelay(uint8_t cnl, uint8_t tValue) {
+  if (! isInitialized) return;
   if (rl[0].getCurStat() == 3) {
     rl[0].setNxtStat(6);
   } else {
