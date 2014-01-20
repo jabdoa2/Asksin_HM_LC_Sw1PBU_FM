@@ -60,6 +60,7 @@ boolean currentSense = false;
 boolean lastCurrentSense = false;
 boolean lastCurrentPin = false;
 static unsigned int pinCurrent = 31;
+static unsinged long minImpulsLength = 500;
 
 ISR(PCINT0_vect) {
 	currentImpuls();
@@ -135,7 +136,7 @@ void loop() {
 		lastCurrentSenseTime = millis();
 
                 // If pin is currently high (and has not been low during the period)
-                if (digitalRead(pinCurrent))
+                if (micros() - currentImpulsStart > minImpulsLength)
                 {
                   currentSense = true;
                 }
@@ -164,9 +165,11 @@ void currentImpuls()
   lastCurrentPin = actualCurrentPin;
   if (actualCurrentPin) { // Impuls start
     currentImpulsStart = micros();
-    currentSense = true;
   } else { // Impuls end
     lastImpulsLength = micros() - currentImpulsStart;
+    if (lastImpulsLength > minImpulsLength) {
+      currentSense = true;
+    }
     currentImpulsStart = 0;
   }
   sei();
