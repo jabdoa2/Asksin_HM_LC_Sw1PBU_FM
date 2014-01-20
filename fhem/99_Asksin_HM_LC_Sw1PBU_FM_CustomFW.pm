@@ -71,8 +71,49 @@ sub CUL_HM_ParseremoteAndSwitch($$$$$$) {
 #    push @event, "frequency:".(hex($F   )/100+50);      # 48.72..51.27     Hz
 #    push @event, "boot:"     .((hex($eCnt)&0x800000)?"on":"off");
     push @entities,CUL_HM_UpdtReadBulk($shash,1,@event);
-  } else {
+  }
+  elsif($mTp =~ m/^4./ && $p =~ m/^(..)(..)/) {
+    my $shash = CUL_HM_id2Hash($src);
+    my ($chn, $bno) = (hex($1), hex($2));# button number/event count
+    my $buttonID = $chn&0x3f;# only 6 bit are valid
+    my $btnName;
+    my $state = "";
+    my $chnHash = $modules{CUL_HM}{defptr}{$src.sprintf("%02X",$buttonID)};
 
+    if ($chnHash){# use userdefined name - ignore this irritating on-off naming
+      $btnName = $chnHash->{NAME};
+    }
+    else{# Button not defined, use default naming
+      $chnHash = $shash;
+      my $btn = int((($chn&0x3f)+1)/2);
+      $btnName = "Btn$btn";
+      $state = ($chn&1 ? "off" : "on")
+    }
+    my $trigType;
+    if($chn & 0x40){
+      if(!$shash->{BNO} || $shash->{BNO} ne $bno){#bno = event counter
+        $shash->{BNO}=$bno;
+        $shash->{BNOCNT}=0; # message counter reest
+      }
+      $shash->{BNOCNT}+=1;
+      $state .= "Long" .($mFlg eq "A0" ? "Release" : "").
+                " ".$shash->{BNOCNT}."-".$mFlg.$mTp."-";
+      $trigType = "Long";
+    }
+    else{
+      $state .= "Short";
+      $trigType = "Short";
+    }
+    $shash->{helper}{addVal} = $chn;   #store to handle changesFread
+    push @entities,CUL_HM_UpdtReadBulk($chnHash,1,
+                                           ,"state:".$state.$target
+                                           ,"trigger:".$trigType."_".$bno);
+    push @event,"battery:". (($chn&0x80)?"low":"ok");
+    push @event,"state:$btnName $state$target";
+
+    push @entities,CUL_HM_UpdtReadBulk($shash,1,@event);
+  } else {
+    Log(1, "Asksin_HM_LC_Sw1PBU_FM_CustomFW received unknown message: $mFlg,$mTp,$src,$dst,$p");
   }
 
   return @entities;
