@@ -48,16 +48,18 @@ Instructions Software:
 * Select Tools->Board->"Jabduino ATmega644A"
 * Compile and Upload with programmer (did not try the arduino bootloader)
 
-Tested/Working features:
+Features ([x] working [p] partial/not finished [ ] not working):
 - [x] Pairing of central via Register.h
 - [x] Pairing of central via Configbutton
 - [x] getConfig Device
 - [x] regSet Device in FHEM
+- [x] Two remote channels for both buttons (channel 1 and 2)
 - [x] Peering of button via Register.h
 - [x] Peering of button via peerChan in FHEM
 - [x] getConfig button in FHEM
 - [x] regSet button in FHEM
 - [x] Controlling peered devices via button press (original homematic devices do work perfectly)
+- [x] Actor channel for internal relay (channel 3)
 - [x] Peering of actor via Register.h
 - [x] Peering of actor via peerChan in FHEM
 - [x] getConfig actor in FHEM
@@ -66,11 +68,14 @@ Tested/Working features:
 - [x] toogle in FHEM
 - [x] controlling actor via peered devices
 - [x] Showing current status in FHEM (Copy device config below)
-- [x] Reading current sensor and sending it via RF (message type 5E. Same format as HM-ES-PMSw1-Pl). Not usable yet.
-- [x] Showing current sensor value in FHEM. (Copy device config below). Not useful yet.
-- [ ] Interpreting current sensor values (what current does it mean?)
-- [ ] Controlling actor by current sensor
+- [p] Reading current sensor and sending it via RF (message type 5E. Same format as HM-ES-PMSw1-Pl).
+- [p] Showing current sensor value in FHEM. (Copy device config below).
+- [x] Virtual Actor channel for double-throw switch/Wechselschalter (channel 4)
+- [p] Set actor channel depending on current input
+- [p] Toggeling relay (channel 3) when toggeling virtual channel
+- [ ] Interpreting current sensor values (60W ~= 6k/5W LED ~= 3k)
 - [ ] Sending remote event by current sensor
+- [ ] Load defaults to registers when peering (for both actor, remote, single and dual peerings)
 
 Using device in FHEM:
 Copy fhem/99_Asksin_HM_LC_Sw1PBU_FM_CustomFW.pm to FHEM/ in your FHEM installation and restart.
