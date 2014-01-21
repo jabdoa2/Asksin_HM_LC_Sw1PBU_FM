@@ -376,11 +376,14 @@ void HM::send_out() {
 
 	if (memcmp(&send.data[7], HMID, 3) == 0) {									// if the message is addressed to us, 
 		memcpy(recv.data,send.data,send.data[0]+1);								// then copy in receive buffer. could be the case while sending from serial console
+        }
+        
+        /*
 		send.counter = 0;														// no need to fire
 	} else {																	// it's not for us, so encode and put in send queue
 
 		send.counter = 1;														// and fire
-	}
+	}*/
 }
 void HM::reset(void) {
 	setEEpromBlock((uint16_t)&ee->magNbr,2,broadCast);							// clear magic byte in eeprom and step in initRegisters
