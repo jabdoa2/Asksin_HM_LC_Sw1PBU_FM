@@ -377,6 +377,7 @@ void HM::send_out() {
 	if (memcmp(&send.data[7], HMID, 3) == 0) {									// if the message is addressed to us, 
 		memcpy(recv.data,send.data,send.data[0]+1);								// then copy in receive buffer. could be the case while sending from serial console
         }
+        send.counter = 1;
         
         /*
 		send.counter = 0;														// no need to fire
