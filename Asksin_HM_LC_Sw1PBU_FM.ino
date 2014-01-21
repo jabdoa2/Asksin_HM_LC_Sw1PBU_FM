@@ -61,7 +61,7 @@ boolean lastCurrentSense = false;
 boolean lastCurrentPin = false;
 static unsigned int pinCurrent = 31;
 static unsigned int pinRelay = 12;
-static unsinged long minImpulsLength = 500;
+static unsigned long minImpulsLength = 500;
 
 ISR(PCINT0_vect) {
 	currentImpuls();
