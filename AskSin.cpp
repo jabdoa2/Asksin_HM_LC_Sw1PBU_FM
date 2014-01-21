@@ -1411,6 +1411,7 @@ void    HM::initRegisters() {
 		#endif
 
 		eeprom_write_word(0,magicNumber);										// to check next time if we have already our structure in eeprom
+                delay(5);
 	}
 	
 	// load default settings to eeprom if firstLoad is defined
@@ -1419,6 +1420,7 @@ void    HM::initRegisters() {
 	mainSettings(&regPtr,&peerPtr);
 	eeprom_write_block((const void*)regPtr,(void*)&ee->regs,sizeof(ee->regs));
 	eeprom_write_block((const void*)peerPtr,(void*)&ee->peerdb,sizeof(ee->peerdb));
+        delay(5);
 	#endif
 
 	// read the peer database back 
