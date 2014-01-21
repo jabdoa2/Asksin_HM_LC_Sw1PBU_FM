@@ -69,13 +69,13 @@ Features ([x] working [p] partial/not finished [ ] not working):
 - [x] controlling actor via peered devices
 - [x] Showing current status in FHEM (Copy device config below)
 - [p] Reading current sensor and sending it via RF (message type 5E. Same format as HM-ES-PMSw1-Pl).
-- [p] Showing current sensor value in FHEM. (Copy device config below).
+- [x] Showing current sensor value in FHEM. (Copy device config below).
 - [x] Virtual Actor channel for double-throw switch/Wechselschalter (channel 4)
 - [p] Set actor channel depending on current input
-- [p] Toggeling relay (channel 3) when toggeling virtual channel
+- [x] Toggeling relay (channel 3) when toggeling virtual channel
 - [ ] Interpreting current sensor values (60W ~= 6k/5W LED ~= 3k)
 - [ ] Sending remote event by current sensor
-- [ ] Load defaults to registers when peering (for both actor, remote, single and dual peerings)
+- [x] Load defaults to registers when peering (for both actor, remote, single and dual peerings)
 
 Using device in FHEM:
 Copy fhem/99_Asksin_HM_LC_Sw1PBU_FM_CustomFW.pm to FHEM/ in your FHEM installation and restart.
