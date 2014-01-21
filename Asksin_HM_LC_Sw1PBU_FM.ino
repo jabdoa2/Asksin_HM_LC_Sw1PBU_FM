@@ -140,7 +140,7 @@ void loop() {
 		lastCurrentSenseTime = millis();
 
                 // If pin is currently high (and has not been low during the period)
-                if (micros() - currentImpulsStart > minImpulsLength)
+                if (currentImpulsStart != 0 && micros() - currentImpulsStart > minImpulsLength)
                 {
                   currentSense = true;
                 }
