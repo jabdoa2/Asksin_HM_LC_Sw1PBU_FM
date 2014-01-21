@@ -1612,12 +1612,13 @@ uint8_t HM::getListForMsg2(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t *buf
 uint8_t HM::getListForMsg3(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t *buf) {
 	
 }
-uint8_t HM::setListFromMsg(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t *buf, uint8_t len) {
-	uint8_t aLen, *tbuf = buf;													// size variables
+uint8_t HM::setListFromMsg(uint8_t cnl, uint8_t lst, uint8_t *peer, const uint8_t *buf, uint8_t len) {
+	uint8_t aLen; // size variables
+        const uint8_t* tbuf = buf;													
 	s_slcVar sV;
 
 	//Serial << "we: " << conf.wrEn << ", cnl: " << cnl << ", lst: " << lst << ", peer: " << pHex(peer,4) << '\n';
-	//Serial << "pl: " << pHex(tbuf,len)  << '\n';
+	Serial << "pl: " << pHex(tbuf,len)  << '\n';
 
 	// get the slice details and the address list
 	if (!getSliceDetail(cnl, lst, peer, &sV)) return 0;
@@ -1693,11 +1694,30 @@ uint8_t HM::addPeerFromMsg(uint8_t cnl, uint8_t *peer) {
 	#endif
 
 	// check if we have to add another peer, if not return the status of adding the first peer
-	if (peer[4] == 0 || peer[3] == peer[4]) return ret;
+	if (peer[4] == 0 || peer[3] == peer[4]) {
+            if (ret) {
+                loadDefaultRegset(cnl, peer, false, 0); 
+                delay(5);
+                getMainChConfig();
+            }
+            return ret;
+        }
+        
+        if (ret) {
+            loadDefaultRegset(cnl, peer, true, 0);
+        }
 
 	// if we are here we have to copy a second peer to database, if everything is ok we got a 1 back
 	tPeer[3] = peer[4];															// copy the second channel to the peer
 	ret = addPeerToDB(cnl,tPeer);
+
+        if (ret) {
+            loadDefaultRegset(cnl, peer, true, 1);
+        }
+        
+        delay(5);
+        getMainChConfig();
+        
 	#if defined(SM_DBG)															// some debug message
 	Serial << F("addPeerFromMsg, cnl: ") << cnl << ", ret: " << ret << '\n';
 	#endif
@@ -1778,6 +1798,33 @@ uint8_t HM::countFreePeerSlot(uint8_t cnl) {
 	}
 	return counter;																// otherwise return failure
 }
+
+uint8_t HM::loadDefaultRegset(uint8_t cnl, uint8_t *peer, boolean dual, uint8_t idx) {
+        uint8_t type = devDef.chDefType[cnl].type;  // get channel type
+        if (default_regChans_dev[type].regChan_len == 0) return 0;  // No default. Nothing to do
+        
+        // get the slice details and the address list
+	s_slcVar sV;
+	if (!getSliceDetail(cnl, default_regChans_dev[type].lst, peer, &sV)) return 0;
+        
+        Serial << "loadDefaultRegset: cnl=" << cnl << " dual: " << dual << " regChan_len: " << default_regChans_dev[type].regChan_len << " lst: " << default_regChans_dev[type].lst << " idx: " << idx << '\n';
+        const uint8_t* regset;
+        if (dual) {
+          if (idx == 0) {
+            regset = default_regChans_dev[type].default_regChan_dual_1;
+          } else {
+            regset = default_regChans_dev[type].default_regChan_dual_2;
+          }
+        } else {
+          regset = default_regChans_dev[type].default_regChan_single;
+        }
+        //eeprom_write_block((const void*)regset,(void*)&sV.phyAddr,sV.phyLen);
+        setEEpromBlock(sV.phyAddr+(uint16_t)&ee->regs, sV.phyLen, (void*)regset);
+//        setEEpromBlock(sV.phyAddr+(uint16_t)&ee->regs, sV.phyLen, (void*)regset);
+        //setEEpromBlock
+        return 1;
+}
+
 uint8_t HM::addPeerToDB(uint8_t cnl, uint8_t *peer) {
 	// check if peer is already known
 	uint8_t tCnl = getIdxByPeer(cnl,peer);
@@ -2333,19 +2380,19 @@ uint32_t intTimeCvt(uint16_t iTime) {
 
 #if defined(USE_SERIAL)
 //- serial print functions 
-char pHex(uint8_t val) {
+char pHex(const uint8_t val) {
 	const char hexDigits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 	Serial << hexDigits[val >> 4] << hexDigits[val & 0xF];
 	return 0;
 }
-char pHex(uint8_t *buf, uint8_t len) {
+char pHex(const uint8_t *buf, uint8_t len) {
 	for (uint8_t i=0; i<len; i++) {
 		pHex(buf[i]);
 		if(i+1 < len) Serial << ' ';
 	}
 	return 0;
 }
-char pHexL(uint8_t *buf, uint8_t len) {
+char pHexL(const uint8_t *buf, uint8_t len) {
 	pHex(buf,len);
 	Serial << F(" (l:") << len << F(")");
 	return 0;

@@ -340,7 +340,7 @@ class HM {
 	// message generation for TRX868 module
 	uint8_t  getListForMsg2(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t *buf);	// OK, create the answer of a info request by filling *buf, returns len of buffer, 0 if done and ff on failure
 	uint8_t  getListForMsg3(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t *buf);	// not defined yet
-	uint8_t  setListFromMsg(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t *buf, uint8_t len);	// OK, writes the register information in *buf to eeprom, 1 if all went ok, 0 on failure
+	uint8_t  setListFromMsg(uint8_t cnl, uint8_t lst, uint8_t *peer, const uint8_t *buf, uint8_t len);	// OK, writes the register information in *buf to eeprom, 1 if all went ok, 0 on failure
 	uint8_t  getPeerListForMsg(uint8_t cnl, uint8_t *buf);						// OK, create a peer list in the format for answering a peer list request in *buf for the respective channel, returns length of buf, max amount of one junk is 16 bytes, reload the function until len = 0
 	
 	// peerdb handling; add, remove and search functions
@@ -352,6 +352,7 @@ class HM {
 	uint8_t  getFreePeerSlot(uint8_t cnl);										// OK, search for a free slot in peerdb, return the index for a free slot, or 0xff if there is no free slot
 	uint8_t  countFreePeerSlot(uint8_t cnl);									// OK, count free slots in peer database by channel
 	uint8_t  addPeerToDB(uint8_t cnl, uint8_t *peer);							// OK, add a single peer to database, returns 1 if ok, 0 for failure
+        uint8_t  loadDefaultRegset(uint8_t cnl, uint8_t *peer, boolean dual, uint8_t idx);  // Load default regset for new peers
 
 	// to check incoming messages if sender is known
 	uint8_t  isPeerKnown(uint8_t *peer);										// OK, check 3 byte peer against peerdb, return 1 if found, otherwise 0
@@ -495,9 +496,9 @@ uint32_t intTimeCvt(uint16_t iTime);
 template<class T> inline Print &operator <<(Print &obj, T arg) { obj.print(arg); return obj; }
 
 //- serial print functions
-char pHex(uint8_t val);
-char pHex(uint8_t *buf, uint8_t len);
-char pHexL(uint8_t *buf, uint8_t len);
+char pHex(const uint8_t val);
+char pHex(const uint8_t *buf, uint8_t len);
+char pHexL(const uint8_t *buf, uint8_t len);
 char pTime(void);
 
 //- interrupt handling

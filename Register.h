@@ -257,6 +257,76 @@ static uint16_t regMcPtr[] = {
 	(uint16_t)&regMC.ch4.l1,
 	(uint16_t)&regMC.ch4.l3,
 };
+/*
+struct s_peer_regChan_actor {                 // chn:1, lst:3
+	uint8_t shCtDlyOn           :4; // reg:0x02, sReg:2
+	uint8_t shCtDlyOff          :4; // reg:0x02, sReg:2.4
+	uint8_t shCtOn              :4; // reg:0x03, sReg:3
+	uint8_t shCtOff             :4; // reg:0x03, sReg:3.4
+	uint8_t shCtValLo;              // reg:0x04, sReg:4
+	uint8_t shCtValHi;              // reg:0x05, sReg:5
+	uint8_t shOnDly;                // reg:0x06, sReg:6
+	uint8_t shOnTime;               // reg:0x07, sReg:7
+	uint8_t shOffDly;               // reg:0x08, sReg:8
+	uint8_t shOffTime;              // reg:0x09, sReg:9
+	uint8_t shActionType        :2; // reg:0x0A, sReg:10
+	uint8_t                     :4;
+	uint8_t shOffTimeMode       :1; // reg:0x0A, sReg:10.6
+	uint8_t shOnTimeMode        :1; // reg:0x0A, sReg:10.7
+	uint8_t shSwJtOn            :4; // reg:0x0B, sReg:11
+	uint8_t shSwJtOff           :4; // reg:0x0B, sReg:11.4
+	uint8_t shSwJtDlyOn         :4; // reg:0x0C, sReg:12
+	uint8_t shSwJtDlyOff        :4; // reg:0x0C, sReg:12.4
+	uint8_t lgCtDlyOn           :4; // reg:0x82, sReg:130
+	uint8_t lgCtDlyOff          :4; // reg:0x82, sReg:130.4
+	uint8_t lgCtOn              :4; // reg:0x83, sReg:131
+	uint8_t lgCtOff             :4; // reg:0x83, sReg:131.4
+	uint8_t lgCtValLo;              // reg:0x84, sReg:132
+v	uint8_t lgCtValHi;              // reg:0x85, sReg:133
+	uint8_t lgOnDly;                // reg:0x86, sReg:134
+	uint8_t lgOnTime;               // reg:0x87, sReg:135
+	uint8_t lgOffDly;               // reg:0x88, sReg:136
+	uint8_t lgOffTime;              // reg:0x89, sReg:137
+	uint8_t lgActionType        :2; // reg:0x8A, sReg:138
+	uint8_t                     :3;
+	uint8_t lgMultiExec         :1; // reg:0x8A, sReg:138.5
+	uint8_t lgOffTimeMode       :1; // reg:0x8A, sReg:138.6
+	uint8_t lgOnTimeMode        :1; // reg:0x8A, sReg:138.7
+	uint8_t lgSwJtOn            :4; // reg:0x8B, sReg:139
+	uint8_t lgSwJtOff           :4; // reg:0x8B, sReg:139.4
+	uint8_t lgSwJtDlyOn         :4; // reg:0x8C, sReg:140
+	uint8_t lgSwJtDlyOff        :4; // reg:0x8C, sReg:140.4
+};*/
+
+struct {
+        uint8_t default_regChan_remote[1];
+        uint8_t default_regChan_actor_single[22];
+        uint8_t default_regChan_actor_dual_1[22];
+        uint8_t default_regChan_actor_dual_2[22];
+} const default_regChans = {
+  {0x01},  // Default remote. burst=1 and aes=0
+  {0x00, 0x00, 0x32, 0x64, 0x00, 0xFF, 0x00, 0xFF, 0x01, 0x14, 0x63, 0x00, 0x00, 0x32, 0x64, 0x00, 0xFF, 0x00, 0xFF, 0x21, 0x14, 0x63},
+  // Default actor single: 02:00 03:00 04:32 05:64 06:00 07:FF 08:00 09:FF 0A:01 0B:14 0C:63 82:00 83:00 84:32 85:64 86:00 87:FF 88:00 89:FF 8A:21 8B:14 8C:63 00:00
+  {0x00, 0x00, 0x32, 0x64, 0x00, 0xFF, 0x00, 0xFF, 0x01, 0x64, 0x66, 0x00, 0x00, 0x32, 0x64, 0x00, 0xFF, 0x00, 0xFF, 0x21, 0x64, 0x66},
+  // Default actor dual 1: 02:00 03:00 04:32 05:64 06:00 07:FF 08:00 09:FF 0A:01 0B:64 0C:66 82:00 83:00 84:32 85:64 86:00 87:FF 88:00 89:FF 8A:21 8B:64 8C:66 00:00
+  {0x00, 0x00, 0x32, 0x64, 0x00, 0xFF, 0x00, 0xFF, 0x01, 0x13, 0x33, 0x00, 0x00, 0x32, 0x64, 0x00, 0xFF, 0x00, 0xFF, 0x21, 0x13, 0x33}
+  // Default actor dual 2: 02:00 03:00 04:32 05:64 06:00 07:FF 08:00 09:FF 0A:01 0B:13 0C:33 82:00 83:00 84:32 85:64 86:00 87:FF 88:00 89:FF 8A:21 8B:13 8C:33 00:00  
+};
+
+// Defaults indexed by device type (see listTypeDef for type)
+
+struct {
+	uint8_t  lst;
+        uint8_t  regChan_len; 
+	const uint8_t *default_regChan_single;
+	const uint8_t *default_regChan_dual_1;
+	const uint8_t *default_regChan_dual_2;
+} const default_regChans_dev[3] = {
+        {3, sizeof(s_peer_regChan_actor), (const uint8_t *) &default_regChans.default_regChan_actor_single, (const uint8_t *) &default_regChans.default_regChan_actor_dual_1, (const uint8_t *) &default_regChans.default_regChan_actor_dual_2}, // actor
+        {0, 0, 0, 0, 0}, // device itself -> no defaults/no peering
+        {4, sizeof(s_peer_regChan_remote), (const uint8_t *) &default_regChans.default_regChan_remote, (const uint8_t *) &default_regChans.default_regChan_remote, (const uint8_t *) &default_regChans.default_regChan_remote}, // remote
+};
+
 
 //- -----------------------------------------------------------------------------------------------------------------------
 //- Device definition -----------------------------------------------------------------------------------------------------
