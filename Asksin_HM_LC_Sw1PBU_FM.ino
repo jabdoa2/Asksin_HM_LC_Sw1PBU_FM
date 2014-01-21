@@ -59,9 +59,11 @@ unsigned long lastImpulsLength = 0;
 boolean currentSense = false;
 boolean lastCurrentSense = false;
 boolean lastCurrentPin = false;
-static unsigned int pinCurrent = 31;
-static unsigned int pinRelay = 12;
-static unsigned long minImpulsLength = 500;
+const uint8_t pinCurrent = 31;
+const uint8_t pinRelay = 12;
+const uint8_t minImpulsLength = 500;
+//const uint8_t sendSensorIntervalSec = 150;
+const uint8_t sendSensorIntervalSec = 30;
 
 ISR(PCINT0_vect) {
 	currentImpuls();
@@ -121,7 +123,6 @@ void setup() {
 	isInitialized = true;
 }
 
-uint16_t current;
 void loop() {
 	// poll functions for serial console, HM module, button key handler and relay handler
         #if defined(USE_SERIAL)
@@ -131,9 +132,9 @@ void loop() {
 	bk->poll();																	// key handler poll
 	rl->poll();																	// relay handler poll
 
-	if (millis() - lastCurrentInfoSentTime > 150000) {
+	if (millis() - lastCurrentInfoSentTime > sendSensorIntervalSec * 1000) {
 		lastCurrentInfoSentTime = millis();
-                hm.sendSensorData(0, 0, lastImpulsLength, 0, 0); // send message
+                hm.sendSensorData(0, 0, lastImpulsLength/(50*sendSensorIntervalSec), 0, 0); // send message
                 lastImpulsLength = 0;
 	}
 	if (millis() - lastCurrentSenseTime > 100) {
@@ -170,8 +171,9 @@ void currentImpuls()
   if (actualCurrentPin) { // Impuls start
     currentImpulsStart = micros();
   } else { // Impuls end
-    lastImpulsLength = micros() - currentImpulsStart;
-    if (lastImpulsLength > minImpulsLength) {
+    uint16_t impulsLength = micros() - currentImpulsStart;
+    lastImpulsLength += impulsLength;
+    if (impulsLength > minImpulsLength) {
       currentSense = true;
     }
     currentImpulsStart = 0;
