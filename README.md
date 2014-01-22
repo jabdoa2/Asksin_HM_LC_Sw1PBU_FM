@@ -11,17 +11,19 @@ Hardware:
 * Relay
 * Current Sensor: Shunt amplified by TLC272 OpAmp (http://www.ti.com/lit/ds/symlink/tlc272.pdf)
 
-To flash the device you need to solder the colored wires to the ISP port. For debugging you need the thin wires to the UART port:
+To flash the device you need to solder the colored wires to the ISP port. For debugging you may want the thin wires to the UART port:
 ![](https://raw.github.com/jabdoa2/Asksin_HM_LC_Sw1PBU_FM/master/hardware/images/isp.jpg "HM-LC-Sw1PBU-FM with connected UART (thin wires) and ISP (colored wired)")
 
 More images can be found in the hardware/images/ subfolder.
 
 Instructions Hardware:
 * WARNING: DO NOT CONNECT THE BOARD to 230V. This will be dangous, since there is no voltage regulator! All ports including uart and SPI may have 230V potential to ground.
-* Controller runs at 3,3V at 8MHz. According to the datasheet up to 5.5V should be save (untested).
-* The relay will not work while testing. Everything else will
-* This will probably void your warrenty
-* You do this at your own risk
+* Controller runs at 3,3V at 8MHz. According to the datasheet up to 5.5V is safe. To make it clear: Both 3,3V (like Raspberry Pi without any mods) and 5V Programmers (like most USB programmers) work perfectly
+* The relay and current sense will not work while testing. Everything else will
+* This will probably void your warrenty. The device most probably will loose its CE certification.
+* YOU DO THIS ON YOUR OWN RISK
+* There is no way back to the original firmware since we do not have any copy of it
+
 
 Connect your ISP Programmer to the top board of the HM-LC-Sw1PBU-FM to the following testpoints:
 * MP2 - 3,3V 
