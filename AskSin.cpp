@@ -1622,7 +1622,9 @@ uint8_t HM::setListFromMsg(uint8_t cnl, uint8_t lst, uint8_t *peer, const uint8_
 	s_slcVar sV;
 
 	//Serial << "we: " << conf.wrEn << ", cnl: " << cnl << ", lst: " << lst << ", peer: " << pHex(peer,4) << '\n';
+	#if defined(SM_DBG)															// some debug message
 	Serial << "pl: " << pHex(tbuf,len)  << '\n';
+	#endif
 
 	// get the slice details and the address list
 	if (!getSliceDetail(cnl, lst, peer, &sV)) return 0;
