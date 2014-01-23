@@ -19,7 +19,7 @@ const char helptext1[] PROGMEM = {												// help text for serial console
 	"  $nn for HEX input (e.g. $AB,$AC ); b[] = byte, i[]. = integer " "\n"
 };
 #if defined(USE_SERIAL)
-InputParser::Commands cmdTab[] PROGMEM = {
+const InputParser::Commands cmdTab[] PROGMEM = {
 	{ 'h', 0, showHelp },
 	{ 'p', 0, sendPairing },
 	{ 's', 1, sendCmdStr },
@@ -34,11 +34,11 @@ InputParser::Commands cmdTab[] PROGMEM = {
 	{ 'r', 0, resetDevice },
 	{ 0 }    
 };
-InputParser parser (50, cmdTab);
+InputParser parser (50, (InputParser::Commands*) cmdTab);
 #endif
 
 //- homematic communication -----------------------------------------------------------------------------------------------
-s_jumptable jumptable[] PROGMEM = {												// jump table for HM communication
+const s_jumptable jumptable[] PROGMEM = {												// jump table for HM communication
 	{ 0x01, 0x0E, HM_Status_Request },
 	{ 0x11, 0x02, HM_Set_Cmd },
 	{ 0x11, 0x04, HM_Reset_Cmd },
@@ -47,7 +47,7 @@ s_jumptable jumptable[] PROGMEM = {												// jump table for HM communicatio
 	{ 0xFF, 0xFF, HM_Config_Changed },
 	{ 0x0 }
 };
-HM hm (jumptable, regMcPtr);													// declare class for handling HM communication
+HM hm ((s_jumptable*) jumptable, regMcPtr);													// declare class for handling HM communication
 BK bk[3];																		// declare 1 inxtStatnces of the button key handler
 RL rl[2];																		// declare one inxtStatnce of relay class
 

@@ -483,7 +483,7 @@ class InputParser {
 	Commands* cmds;
 	Stream& io;
 };
-extern InputParser::Commands cmdTab[];
+extern const InputParser::Commands cmdTab[];
 void showPGMText(PGM_P s);
 
 //- -----------------------------------------------------------------------------------------------------------------------
