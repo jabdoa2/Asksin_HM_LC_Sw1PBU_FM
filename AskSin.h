@@ -231,8 +231,10 @@ class HM {
 	void sendSensorData(uint32_t energyCounter, uint32_t power, uint16_t current, uint16_t voltage, uint8_t frequency);
 
 	// some debug functions
+#if defined(USE_SERIAL)
 	void printSettings(void);
 	void printConfig(void);
+#endif
 	public:	
 //	protected://-----------------------------------------------------------------------------------------------------------
 	// hardware definition for interrupt handling

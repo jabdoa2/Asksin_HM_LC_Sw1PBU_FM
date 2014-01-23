@@ -42,7 +42,7 @@ void CC::init(void) {															// initialize CC1101
 	Serial << '1';
 	#endif
 
-	const static prog_uint8_t initVal[] PROGMEM = {									// define init settings for TRX868
+	const static uint8_t initVal[] PROGMEM = {									// define init settings for TRX868
 		0x00, 0x2E,			// IOCFG2: tristate									// non inverted GDO2, high impedance tri state
 		0x01, 0x2E,			// IOCFG1: tristate									// low output drive strength, non inverted GD=1, high impedance tri state
 		0x02, 0x06,			// IOCFG0: packet CRC ok							// disable temperature sensor, non inverted GDO0, asserts when a sync word has been sent/received, and de-asserts at the end of the packet. in RX, the pin will also de-assert when a package is discarded due to address or maximum length filtering
@@ -601,7 +601,7 @@ void HM::send_NACK(void) {
 	uint8_t payLoad[] = {0x80};													// NACK
 	send_prep(recv_rCnt,0x80,0x02,recv_reID,payLoad,1);
 }
-
+#if defined(USE_SERIAL)
 // some debug functions
 void HM::printSettings() {
 	Serial << F("Serial: ");
@@ -619,8 +619,7 @@ void HM::printSettings() {
 }
 void HM::printConfig() {
 	s_slcVar sV;																// size some variables
-	uint16_t bCnt = 0;
-	uint8_t ret, peer[] = {0xff,0xff,0xff,0x00,0x00,0x00,0x00,0x00};
+	uint8_t peer[] = {0xff,0xff,0xff,0x00,0x00,0x00,0x00,0x00};
 	
 	// show device config
 	Serial << F("\nDevice config, size: ") << sizeof(ee) << F(" byte\n");
@@ -655,6 +654,7 @@ void HM::printConfig() {
 	}
 	Serial << '\n';
 }
+#endif
 	
 //- private: //------------------------------------------------------------------------------------------------------------
 // hardware definition for interrupt handling
@@ -977,7 +977,7 @@ void HM::recv_ConfigPeerAdd(void) {
 	// l> 10 55 A0 01 63 19 63 1E 7A AD 03   01  1F A6 5C  06         05
 
 	// do something with the information ----------------------------------
-	uint8_t ret = addPeerFromMsg(recv_payLoad[0], recv_payLoad+2);
+	addPeerFromMsg(recv_payLoad[0], recv_payLoad+2);
 
 	// send appropriate answer ---------------------------------------------
 	// l> 0A 55 80 02 1E 7A AD 63 19 63 00
@@ -991,7 +991,7 @@ void HM::recv_ConfigPeerRemove(void) {
 	// l> 10 55 A0 01 63 19 63 1E 7A AD 03   02  1F A6 5C  06         05
 
 	// do something with the information ----------------------------------
-	uint8_t ret = removePeerFromMsg(recv_payLoad[0], recv_payLoad+2);
+	removePeerFromMsg(recv_payLoad[0], recv_payLoad+2);
 
 	// send appropriate answer ---------------------------------------------
 	// l> 0A 55 80 02 1E 7A AD 63 19 63 00
@@ -1149,7 +1149,7 @@ void HM::recv_PairEvent(void) {
 	// <- 0E E7 80 02 1F B7 4A 63 19 63 01 01 C8 00 54
 	
 	// do something with the information ----------------------------------
-	uint8_t ret = recv_Jump(0);													// jump in user function, if no answer from user function, we send a blank status answer
+	recv_Jump(0);													// jump in user function, if no answer from user function, we send a blank status answer
 	
 	
 	// send appropriate answer ---------------------------------------------
@@ -1492,7 +1492,9 @@ uint8_t HM::doesListExist(uint8_t cnl, uint8_t lst) {
 	else return 1;																// list found
 }
 uint8_t HM::getRegList(uint8_t slcPtr, uint8_t slcLen, uint8_t *buf) {
+        #if defined(SM_DBG)
 	uint8_t *x = buf;															// needed for debug message
+        #endif
 
 	slcLen += slcPtr;															// calculate slice len
 	
@@ -1536,7 +1538,6 @@ void HM::getMainChConfig(void) {
 void HM::getList3ByPeer(uint8_t cnl, uint8_t *peer) {
 	s_slcVar sV;																// some declarations
 	
-	uint16_t *mc = (uint16_t*)mcConfPtr;
 	uint8_t ret = getSliceDetail(cnl, 3, peer, &sV);							// get cnl list3 for external use
 	if (ret) getEEpromBlock(sV.phyAddr+(uint16_t)&ee->regs, sV.phyLen, (void*)l3Ptr[cnl]);
 
@@ -1555,7 +1556,9 @@ uint8_t HM::getListForMsg2(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t *buf
 	
 	static uint8_t tcnl, tlst, msgPtr = 0;										// size variables
 	static uint32_t tpeerL, peerL;
+	#if defined(SM_DBG)
 	uint8_t *tbuf = buf;														// remember the start position of buffer
+        #endif
 	static s_slcVar sV;
 	
 	// check if we are complete, check mark is the physical len of the data string
@@ -1614,7 +1617,7 @@ uint8_t HM::getListForMsg2(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t *buf
 	return bInMsg;																// return accordingly
 }
 uint8_t HM::getListForMsg3(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t *buf) {
-	
+	return 0;
 }
 uint8_t HM::setListFromMsg(uint8_t cnl, uint8_t lst, uint8_t *peer, const uint8_t *buf, uint8_t len) {
 	uint8_t aLen; // size variables
@@ -2143,6 +2146,7 @@ uint8_t RL::getRly(void) {
 	// curStat could be {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
 	if ((curStat == 1) || (curStat == 3)) return 0xC8;
 	if ((curStat == 4) || (curStat == 6)) return 0x00;
+        return 0x00; // Default
 }
 uint8_t RL::getStat(void) {
 	// curStat could be {no=>0,dlyOn=>1,on=>3,dlyOff=>4,off=>6}
