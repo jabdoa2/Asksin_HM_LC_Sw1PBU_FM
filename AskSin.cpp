@@ -42,7 +42,7 @@ void CC::init(void) {															// initialize CC1101
 	Serial << '1';
 	#endif
 
-	static prog_uint8_t initVal[] PROGMEM = {									// define init settings for TRX868
+	const static prog_uint8_t initVal[] PROGMEM = {									// define init settings for TRX868
 		0x00, 0x2E,			// IOCFG2: tristate									// non inverted GDO2, high impedance tri state
 		0x01, 0x2E,			// IOCFG1: tristate									// low output drive strength, non inverted GD=1, high impedance tri state
 		0x02, 0x06,			// IOCFG0: packet CRC ok							// disable temperature sensor, non inverted GDO0, asserts when a sync word has been sent/received, and de-asserts at the end of the packet. in RX, the pin will also de-assert when a package is discarded due to address or maximum length filtering
