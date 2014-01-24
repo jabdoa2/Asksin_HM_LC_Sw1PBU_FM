@@ -38,9 +38,6 @@ Instructions Hardware:
 * Power the controller using your programmer. Both 3,3V (like Raspberry Pi without any mods) and 5V Programmers (like most USB programmers) work perfectly
 * The relay and current sense will not work while testing with 3,3 or 5V. Everything else will
 
-
-Other intersting ports:
-
 Instructions Software:
 * Install jabduino (https://github.com/jabdoa2/jabduino) into your Arduino hardware folder
     * Linux: /usr/share/arduino/hardware 
@@ -82,8 +79,3 @@ Features ([x] working [p] partial/not finished [ ] not working):
 
 Using device in FHEM:
 Copy fhem/99_Asksin_HM_LC_Sw1PBU_FM_CustomFW.pm to FHEM/ in your FHEM installation and restart.
-
-
-Howto:
-
-
