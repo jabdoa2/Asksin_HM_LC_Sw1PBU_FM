@@ -7,44 +7,45 @@ Ported Askin Library from FHEM Forum to Atmel ATmega 644A (https://github.com/tr
 
 Hardware:
 * CC1100 on 868,3 MHz speaking BidCos
-* Atmel ATmega 644A (http://www.atmel.com/Images/Atmel-8272-8-bit-AVR-microcontroller-ATmega164A_PA-324A_PA-644A_PA-1284_P_datasheet.pdf)
+* Atmel ATmega 644A (http://www.atmel.com/Images/Atmel-8272-8-bit-AVR-microcontroller-ATmega164A\_PA-324A\_PA-644A\_PA-1284\_P\_datasheet.pdf)
+* Controller runs at 3,3V at 8MHz. According to the datasheet up to 5.5V is safe.
 * Relay
-* Current Sensor: Shunt amplified by TLC272 OpAmp (http://www.ti.com/lit/ds/symlink/tlc272.pdf)
+* Current Sensor: MP13 + MP29 (PA0/ADC0 at ATmega) Shunt amplified by TLC272 OpAmp (http://www.ti.com/lit/ds/symlink/tlc272.pdf)
 
 To flash the device you need to solder the colored wires to the ISP port. For debugging you may want the thin wires to the UART port:
 ![](https://raw.github.com/jabdoa2/Asksin_HM_LC_Sw1PBU_FM/master/hardware/images/isp.jpg "HM-LC-Sw1PBU-FM with connected UART (thin wires) and ISP (colored wired)")
 
 More images can be found in the hardware/images/ subfolder.
 
-Instructions Hardware:
-* WARNING: DO NOT CONNECT THE BOARD to 230V. This will be dangous, since there is no voltage regulator! All ports including uart and SPI may have 230V potential to ground.
-* Controller runs at 3,3V at 8MHz. According to the datasheet up to 5.5V is safe. To make it clear: Both 3,3V (like Raspberry Pi without any mods) and 5V Programmers (like most USB programmers) work perfectly
-* The relay and current sense will not work while testing. Everything else will
-* This will probably void your warrenty. The device most probably will loose its CE certification.
+Warnings:
+* DO NOT CONNECT THE BOARD to 230V. This will be dangous, since there is no voltage regulator! All ports including uart and SPI may have 230V potential to ground.
 * YOU DO THIS ON YOUR OWN RISK
+* This will probably void your warrenty. The device most probably will loose its CE certification.
 * There is no way back to the original firmware since we do not have any copy of it
 
+Instructions Hardware:
+* Connect your ISP Programmer to the top board of the HM-LC-Sw1PBU-FM to the following testpoints:
+  * MP2 - 3,3V 
+  * MP3 - Reset
+  * MP4 - MOSI
+  * MP5 - MISO
+  * MP6 - CLK
+  * MP15 - GND
+* Connect your UART to the following test points (optional for debugging):
+  * MP9 - RX
+  * MP10 - TX
+  * MP16 - GND
+* Power the controller using your programmer. Both 3,3V (like Raspberry Pi without any mods) and 5V Programmers (like most USB programmers) work perfectly
+* The relay and current sense will not work while testing with 3,3 or 5V. Everything else will
 
-Connect your ISP Programmer to the top board of the HM-LC-Sw1PBU-FM to the following testpoints:
-* MP2 - 3,3V 
-* MP3 - Reset
-* MP4 - MOSI
-* MP5 - MISO
-* MP6 - CLK
-* MP15 - GND
-
-UART is also at the top board at those testpoints:
-* MP9 - RX
-* MP10 - TX
-* MP16 - GND
 
 Other intersting ports:
-* MP13 + MP29 - Current Sensor (PA0/ADC0 at ATmega). Not implemented in original Firmware. Needs to be explored
 
 Instructions Software:
 * Install jabduino (https://github.com/jabdoa2/jabduino) into your Arduino hardware folder
     * Linux: /usr/share/arduino/hardware 
     * Windows: folder "hardware" in your Arduino directory
+- Checkout to sketchbook/Asksin\_HM\_LC\_Sw1PBU\_FM (important: there should be no minus in the foldername)
 * Open Arduino
 * Open Sketch "Asksin\_HM\_LC\_Sw1PBU\_FM"
 * Select Tools->Board->"Jabduino ATmega644A"
@@ -81,4 +82,8 @@ Features ([x] working [p] partial/not finished [ ] not working):
 
 Using device in FHEM:
 Copy fhem/99_Asksin_HM_LC_Sw1PBU_FM_CustomFW.pm to FHEM/ in your FHEM installation and restart.
+
+
+Howto:
+
 
