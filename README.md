@@ -39,7 +39,7 @@ Instructions Hardware:
 * The relay and current sense will not work while testing with 3,3 or 5V. Everything else will
 
 Instructions Software:
-* Install jabduino (https://github.com/jabdoa2/jabduino) into your Arduino hardware folder
+* Install jabduino (https://github.com/jabdoa2/jabduino) into your Arduino hardware folder (important: there should be no minus in the foldername)
     * Linux: /usr/share/arduino/hardware 
     * Windows: folder "hardware" in your Arduino directory
 - Checkout to sketchbook/Asksin\_HM\_LC\_Sw1PBU\_FM (important: there should be no minus in the foldername)
@@ -68,14 +68,14 @@ Features ([x] working [p] partial/not finished [ ] not working):
 - [x] toogle in FHEM
 - [x] controlling actor via peered devices
 - [x] Showing current status in FHEM (Copy device config below)
-- [p] Reading current sensor and sending it via RF (message type 5E. Same format as HM-ES-PMSw1-Pl).
+- [x] Reading current sensor and sending it via RF (message type 5E. Same format as HM-ES-PMSw1-Pl).
 - [x] Showing current sensor value in FHEM. (Copy device config below).
 - [x] Virtual Actor channel for double-throw switch/Wechselschalter (channel 4)
-- [p] Set actor channel depending on current input
+- [x] Set actor channel depending on current input
 - [x] Toggeling relay (channel 3) when toggeling virtual channel
 - [ ] Interpreting current sensor values (60W ~= 6k/5W LED ~= 3k)
 - [ ] Sending remote event by current sensor
 - [x] Load defaults to registers when peering (for both actor, remote, single and dual peerings)
 
 Using device in FHEM:
-Copy fhem/99_Asksin_HM_LC_Sw1PBU_FM_CustomFW.pm to FHEM/ in your FHEM installation and restart.
+Copy fhem/99\_Asksin\_HM\_LC\_Sw1PBU\_FM\_CustomFW.pm to FHEM/ in your FHEM installation and restart.
