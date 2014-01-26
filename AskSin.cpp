@@ -1399,6 +1399,7 @@ void HM::exMsg(uint8_t *buf) {
 // - Storage Management ---------------------------------------------------------------------------------------------------
 void    HM::initRegisters() {
 	// check for magic number in eeprom to see if we have a first run
+        while (!eeprom_is_ready());
 	uint16_t tmagicNumber = eeprom_read_word(0);
 	if (tmagicNumber != magicNumber) {
 		
@@ -1414,8 +1415,8 @@ void    HM::initRegisters() {
 		Serial << F("done\n");
 		#endif
 
+                while (!eeprom_is_ready());
 		eeprom_write_word(0,magicNumber);										// to check next time if we have already our structure in eeprom
-                delay(5);
 	}
 	
 	// load default settings to eeprom if firstLoad is defined
@@ -1424,10 +1425,10 @@ void    HM::initRegisters() {
 	mainSettings(&regPtr,&peerPtr);
 	eeprom_write_block((const void*)regPtr,(void*)&ee->regs,sizeof(ee->regs));
 	eeprom_write_block((const void*)peerPtr,(void*)&ee->peerdb,sizeof(ee->peerdb));
-        delay(5);
 	#endif
 
-	// read the peer database back 
+	// read the peer database back
+        while (!eeprom_is_ready());
 	getEEpromBlock((uint16_t)&ee->peerdb, sizeof(peerdb), &peerdb);				// read back peer database
 	#if defined(SM_DBG)															// some debug message
 	Serial << F("Loading PeerDB, starts: ") << (uint16_t)&ee->peerdb << F(", size of: ") << sizeof(ee->peerdb) << '\n';
@@ -1706,7 +1707,7 @@ uint8_t HM::addPeerFromMsg(uint8_t cnl, uint8_t *peer) {
 	if (peer[4] == 0 || peer[3] == peer[4]) {
             if (ret) {
                 loadDefaultRegset(cnl, peer, false, 0); 
-                delay(5);
+                while (!eeprom_is_ready());
                 getMainChConfig();
             }
             return ret;
@@ -1724,7 +1725,7 @@ uint8_t HM::addPeerFromMsg(uint8_t cnl, uint8_t *peer) {
             loadDefaultRegset(cnl, peer, true, 1);
         }
         
-        delay(5);
+        while (!eeprom_is_ready());
         getMainChConfig();
         
 	#if defined(SM_DBG)															// some debug message
