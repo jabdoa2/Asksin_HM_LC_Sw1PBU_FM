@@ -61,7 +61,7 @@ boolean lastCurrentSense = false;
 boolean lastCurrentPin = false;
 const uint8_t pinCurrent = 31;
 const uint8_t pinRelay = 12;
-const uint8_t minImpulsLength = 500;
+const uint16_t minImpulsLength = 500;
 //const uint8_t sendSensorIntervalSec = 150;
 const uint8_t sendSensorIntervalSec = 30;
 
