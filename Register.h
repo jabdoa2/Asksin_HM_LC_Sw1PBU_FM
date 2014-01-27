@@ -19,9 +19,9 @@ const uint8_t devParam[] PROGMEM = {
 };
 
 //static uint8_t  HMID[3]     = { 0x20, 0x7C, 0x41 };	// 207C41						// very important, must be unique. identifier for the device in the network
-static uint8_t  HMID[3]     = { 0x20, 0x85, 0x57 };     // 208557
-static uint8_t  maxRetries  = 3;											// how often a string should be send out until we get an answer
-static uint16_t timeOut     = 700;											// time out for ACK handling
+const uint8_t  HMID[3]     = { 0x20, 0x85, 0x57 };     // 208557
+const uint8_t  maxRetries  = 3;											// how often a string should be send out until we get an answer
+const uint16_t timeOut     = 700;											// time out for ACK handling
 
 
 //- -----------------------------------------------------------------------------------------------------------------------

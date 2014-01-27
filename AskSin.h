@@ -25,7 +25,7 @@ struct s_jumptable {
 	void (*fun)(uint8_t, uint8_t*, uint8_t);									// code to call for this command
 };
 
-static uint8_t broadCast[] = {0,0,0,0};											// default broadcast address
+const uint8_t broadCast[] = {0,0,0,0}; 										// default broadcast address
 extern volatile unsigned long timer0_millis;									// make millis timer available for correcting after deep sleep
 
 //- -----------------------------------------------------------------------------------------------------------------------

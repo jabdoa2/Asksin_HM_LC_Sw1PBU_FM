@@ -12,37 +12,7 @@ s_prl prl;
 //- ----------------------------------------------------------------------------------------------------------------------
 //- CC1101 communication functions ----------------------------------------------------------------------------------------
 //- -----------------------------------------------------------------------------------------------------------------------
-void CC::init(void) {															// initialize CC1101
-	#if defined(CC_DBG)
-	Serial << F("CC1101_init: ");
-	#endif
-
-	pinMode(SS, OUTPUT);														// set pins for SPI communication
-	pinMode(MOSI, OUTPUT);
-	pinMode(MISO, INPUT);
-	pinMode(SCK, OUTPUT);
-	pinMode(GDO0, INPUT);														// config GDO0 as input
-
-	digitalWrite(SS, HIGH);														// SPI init
-	digitalWrite(SCK, HIGH);
-	digitalWrite(MOSI, LOW);
-
-	SPCR = _BV(SPE) | _BV(MSTR);												// SPI speed = CLK/4
-
-	cc1101_Deselect();															// some deselect and selects to init the TRX868modul
-	delayMicroseconds(5);
-	cc1101_Select();	
-	delayMicroseconds(10);
-	cc1101_Deselect();
-	delayMicroseconds(41);
-
-	cmdStrobe(CC1101_SRES);														// send reset
-
-	#if defined(CC_DBG)
-	Serial << '1';
-	#endif
-
-	const static uint8_t initVal[] PROGMEM = {									// define init settings for TRX868
+	const uint8_t initVal[] PROGMEM = {									// define init settings for TRX868
 		0x00, 0x2E,			// IOCFG2: tristate									// non inverted GDO2, high impedance tri state
 		0x01, 0x2E,			// IOCFG1: tristate									// low output drive strength, non inverted GD=1, high impedance tri state
 		0x02, 0x06,			// IOCFG0: packet CRC ok							// disable temperature sensor, non inverted GDO0, asserts when a sync word has been sent/received, and de-asserts at the end of the packet. in RX, the pin will also de-assert when a package is discarded due to address or maximum length filtering
@@ -73,6 +43,37 @@ void CC::init(void) {															// initialize CC1101
 		0x2D, 0x35,			// TEST1
 		0x3E, 0xC3,			// ?
 	};
+
+void CC::init(void) {															// initialize CC1101
+	#if defined(CC_DBG)
+	Serial << F("CC1101_init: ");
+	#endif
+
+	pinMode(SS, OUTPUT);														// set pins for SPI communication
+	pinMode(MOSI, OUTPUT);
+	pinMode(MISO, INPUT);
+	pinMode(SCK, OUTPUT);
+	pinMode(GDO0, INPUT);														// config GDO0 as input
+
+	digitalWrite(SS, HIGH);														// SPI init
+	digitalWrite(SCK, HIGH);
+	digitalWrite(MOSI, LOW);
+
+	SPCR = _BV(SPE) | _BV(MSTR);												// SPI speed = CLK/4
+
+	cc1101_Deselect();															// some deselect and selects to init the TRX868modul
+	delayMicroseconds(5);
+	cc1101_Select();	
+	delayMicroseconds(10);
+	cc1101_Deselect();
+	delayMicroseconds(41);
+
+	cmdStrobe(CC1101_SRES);														// send reset
+
+	#if defined(CC_DBG)
+	Serial << '1';
+	#endif
+
 	for (uint8_t i=0; i<sizeof(initVal); i++) {									// write init value to TRX868
 		writeReg(pgm_read_byte(&initVal[i++]), pgm_read_byte(&initVal[i]));	
 	}
@@ -387,7 +388,7 @@ void HM::send_out() {
 	}*/
 }
 void HM::reset(void) {
-	setEEpromBlock((uint16_t)&ee->magNbr,2,broadCast);							// clear magic byte in eeprom and step in initRegisters
+	setEEpromBlock((uint16_t)&ee->magNbr,2,(uint8_t*) &broadCast);							// clear magic byte in eeprom and step in initRegisters
 	initRegisters();															// reload the registers
 	ld.stop();																	// stop blinking
 	ld.shortBlink3();															// blink three times short
@@ -400,7 +401,7 @@ void HM::setConfigEvent(void) {
 		x.fun =  (void (*)(uint8_t, uint8_t*, uint8_t))pgm_read_word(&p->fun);
 		
 		if ((x.code == 0xFF) && (x.spec == 0xFF)) {
-			x.fun(0,broadCast,0);
+			x.fun(0,(uint8_t*) &broadCast,0);
 			break;																// and jump into
 		}
 	}
@@ -674,7 +675,7 @@ void HM::recv_poll(void) {														// handles the receive objects
 	// do some checkups 
 	if (memcmp(&recv.data[7], HMID, 3) == 0) recv.forUs = 1;					// for us 
 	else recv.forUs = 0;
-	if (memcmp(&recv.data[7], 0l, 3) == 0) recv.bCast = 1;						// or a broadcast 
+	if (memcmp(&recv.data[7], broadCast, 3) == 0) recv.bCast = 1;						// or a broadcast 
 	else recv.bCast = 0;														// otherwise only a log message
 	
 	// show debug message
@@ -867,7 +868,7 @@ void HM::send_peer_poll(void) {
 	
 	// get the respective list4
 	s_slcVar sV;																// some declarations
-	uint8_t regLstByte;
+	uint8_t regLstByte = 0;
 
 	ret = getSliceDetail(pevt.cnl, 4, peerBuf, &sV);							// get cnl list4 
 	if (ret) {
@@ -1520,7 +1521,7 @@ void HM::getMainChConfig(void) {
 	s_slcVar sV;
 	
 	// get cnl0 list0 for internal and external use
-	ret = getSliceDetail(0, 0, broadCast, &sV);
+	ret = getSliceDetail(0, 0, (uint8_t*) &broadCast, &sV);
 	getEEpromBlock(sV.phyAddr+(uint16_t)&ee->regs, sV.phyLen, &regDev);
 	
 	// step through the channels and lists and load registers
@@ -1553,7 +1554,7 @@ uint8_t HM::getListForMsg2(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t *buf
 	//        3-254 = chars returned
 	//        0xff  = input params unknown
 
-	#define bytesPerJunk 8														// how many bytes should one junk deliver
+	const uint8_t bytesPerJunk = 8;														// how many bytes should one junk deliver
 	
 	static uint8_t tcnl, tlst, msgPtr = 0;										// size variables
 	static uint32_t tpeerL, peerL;
@@ -1622,7 +1623,9 @@ uint8_t HM::getListForMsg3(uint8_t cnl, uint8_t lst, uint8_t *peer, uint8_t *buf
 }
 uint8_t HM::setListFromMsg(uint8_t cnl, uint8_t lst, uint8_t *peer, const uint8_t *buf, uint8_t len) {
 	uint8_t aLen; // size variables
-        const uint8_t* tbuf = buf;													
+	#if defined(SM_DBG)	
+        const uint8_t* tbuf = buf;
+	#endif													
 	s_slcVar sV;
 
 	//Serial << "we: " << conf.wrEn << ", cnl: " << cnl << ", lst: " << lst << ", peer: " << pHex(peer,4) << '\n';
@@ -1666,7 +1669,7 @@ uint8_t HM::setListFromMsg(uint8_t cnl, uint8_t lst, uint8_t *peer, const uint8_
 	return 1;
 }
 uint8_t HM::getPeerListForMsg(uint8_t cnl, uint8_t *buf) {
-	#define bytesPerJunk 16														// how many bytes should one junk deliver
+	const uint8_t bytesPerJunk = 16;														// how many bytes should one junk deliver
 	if (cnl > maxChannel) return 0xff;											// if channel out of range, return
 
 	uint8_t *t, cnt=0;															// size variables
@@ -1742,11 +1745,11 @@ uint8_t HM::removePeerFromMsg(uint8_t cnl, uint8_t *peer) {
 	// if we found a valid index, we will delete the peer by writing the broad cast variable in the slot
 	memcpy(tPeer,peer,4);														// copy the peer in a variable
 	idx1 = getIdxByPeer(cnl, tPeer);											// get the idx of the first peer
-	if (idx1 != 0xff) setEEpromBlock((uint16_t)&ee->peerdb[cnl-1][idx1],4,broadCast);
+	if (idx1 != 0xff) setEEpromBlock((uint16_t)&ee->peerdb[cnl-1][idx1],4,(uint8_t*) &broadCast);
 
 	tPeer[3] = peer[4];															// change the peer channel
 	idx2 = getIdxByPeer(cnl, tPeer);											// get the idx of the second peer
-	if (idx2 != 0xff) setEEpromBlock((uint16_t)&ee->peerdb[cnl-1][idx2],4,broadCast);
+	if (idx2 != 0xff) setEEpromBlock((uint16_t)&ee->peerdb[cnl-1][idx2],4,(uint8_t*) &broadCast);
 
 
 	#if defined(SM_DBG)															// some debug message
@@ -2421,9 +2424,13 @@ void pcInt(uint8_t iPort) {
 	// getting the PCMASK for filtering by interrupt mask
 	uint8_t pcMskByte;
 	if (iPort == 0) pcMskByte = PCMSK0;
-	if (iPort == 1) pcMskByte = PCMSK1;
-	if (iPort == 2) pcMskByte = PCMSK2;
-	if (iPort == 3) pcMskByte = PCMSK3;
+	else if (iPort == 1) pcMskByte = PCMSK1;
+	else if (iPort == 2) pcMskByte = PCMSK2;
+	else if (iPort == 3) pcMskByte = PCMSK3;
+        else {
+          sei();
+          return; 
+        }
 
 	// find the changed pin by getting the pin states for the indicated port, comparing with the stored byte of the port and setting the port byte for the next try
 	uint8_t cur = *pci.pAddr[iPort] & pcMskByte;								// get the input byte
