@@ -69,6 +69,7 @@ void CC::init(void) {															// initialize CC1101
 	delayMicroseconds(41);
 
 	cmdStrobe(CC1101_SRES);														// send reset
+        delay(10);
 
 	#if defined(CC_DBG)
 	Serial << '1';
