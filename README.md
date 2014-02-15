@@ -46,6 +46,7 @@ Instructions Software:
 * Open Arduino
 * Open Sketch "Asksin\_HM\_LC\_Sw1PBU\_FM"
 * Select Tools->Board->"Jabduino ATmega644A"
+* Change HMID in Register.h to the original HMID of your device
 * Compile and Upload with programmer (did not try the arduino bootloader)
 
 Features ([x] working [p] partial/not finished [ ] not working):
@@ -74,7 +75,7 @@ Features ([x] working [p] partial/not finished [ ] not working):
 - [x] Set actor channel depending on current input
 - [x] Toggeling relay (channel 3) when toggeling virtual channel
 - [ ] Interpreting current sensor values (60W ~= 6k/5W LED ~= 3k)
-- [ ] Sending remote event by current sensor
+- [ ] Sending 41 Messages with current value to other actors
 - [x] Load defaults to registers when peering (for both actor, remote, single and dual peerings)
 
 Using device in FHEM:
