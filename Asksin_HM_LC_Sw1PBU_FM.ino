@@ -146,15 +146,13 @@ void loop() {
                   currentSense = true;
                 }
                 // Act on changes
-                rl[1].setCurStat(currentSense?3:6);
-                
-                /*
                 if (currentSense != lastCurrentSense)
                 {
-                  Serial << F("New Powersense: ") << currentSense << '\n';
+                  rl[1].setCurStat(currentSense?3:6);
+//                  Serial << F("New Powersense: ") << currentSense << '\n';
 //                  hm.sendInfoActuatorStatus(4,currentSense?0xC8:0x00,0);
                   lastCurrentSense = currentSense;
-                }*/
+                }
                 currentSense = false;
 	}
 }

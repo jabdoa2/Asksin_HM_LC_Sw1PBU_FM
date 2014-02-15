@@ -5,7 +5,7 @@
 //#define CC_DBG															// debug messages of the CC module, ~0.2k program space
 //#define SM_DBG															// debug messages of the SM module, ~1k program space
 #define AS_DBG																// debug messages of the HM module, ~0.6k program space
-//#define AS_DBG_Explain												// debug messages of the HM module, ~5k program space
+#define AS_DBG_Explain												// debug messages of the HM module, ~5k program space
 #define RL_DBG
 #endif
 
@@ -18,7 +18,7 @@ const uint8_t devParam[] PROGMEM = {
 	/* Device Info      3 byte */  0x41, 0x01, 0x00							// describes device, not completely clear yet. includes amount of channels
 };
 
-//static uint8_t  HMID[3]     = { 0x20, 0x7C, 0x41 };	// 207C41						// very important, must be unique. identifier for the device in the network
+//const uint8_t  HMID[3]     = { 0x20, 0x7C, 0x41 };	// 207C41						// very important, must be unique. identifier for the device in the network
 const uint8_t  HMID[3]     = { 0x20, 0x85, 0x57 };     // 208557
 const uint8_t  maxRetries  = 3;											// how often a string should be send out until we get an answer
 const uint16_t timeOut     = 700;											// time out for ACK handling
@@ -344,7 +344,7 @@ struct {
 //  if 'firstLoad' is defined, hm.init function will step in mainSettings function;
 //  be careful, whole eeprom block will be overwritten. you will loose your former settings...
 //- -----------------------------------------------------------------------------------------------------------------------
-#define firstLoad
+//#define firstLoad
 static void mainSettings(uint16_t *regPtr, uint16_t *peerPtr) {
 	static s_regs reg;
 	*regPtr = (uint16_t)&reg;

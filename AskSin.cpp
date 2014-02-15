@@ -2225,7 +2225,8 @@ void RL::setNxtStat(int newNxtStat) {
 void RL::setCurStat(int newCurStat) {
   if (curStat == newCurStat) return;
   curStat = newCurStat;
-  cbsTme = millis() + ((uint32_t)mDel*1000) + random(((uint32_t)rDel*1000));  
+  cbsTme = millis() + ((uint32_t)mDel*1000) + random(((uint32_t)rDel*1000));
+  lastTrig = 0;
 }
 
 #if defined(USE_SERIAL)
