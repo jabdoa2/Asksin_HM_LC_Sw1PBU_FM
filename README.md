@@ -51,7 +51,8 @@ Instructions Software:
 
 Features ([x] working [p] partial/not finished [ ] not working):
 - [x] Pairing of central via Register.h
-- [x] Pairing of central via Configbutton
+- [x] Pairing of central via Configbutton (long press)
+- [x] Reset device (double long press)
 - [x] getConfig Device
 - [x] regSet Device in FHEM
 - [x] Two remote channels for both buttons (channel 1 and 2)
