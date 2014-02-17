@@ -197,9 +197,8 @@ void buttonState(uint8_t idx, uint8_t state) {
 
 	// channel device
 	if (idx == 0) {
-		if (state == 0) hm.startPairing();										// short key press, send pairing string
-		if (state == 2) hm.ld.set(2);											// long key press could mean, you like to go for reseting the device
-		if (state == 6) hm.ld.set(0);											// time out for double long, stop slow blinking
+                if (state == 0) hm.ld.shortBlink();
+		if (state == 6) hm.startPairing();											// long key press, start pairing
 		if (state == 5) hm.reset();												// double long key press, reset the device
 	}
 
@@ -216,7 +215,7 @@ void relayState(uint8_t cnl, uint8_t curStat, uint8_t nxtStat) {
         #if defined(RL_DBG)
 	Serial << "c:" << cnl << " cS:" << curStat << " nS:" << nxtStat << '\n';	// some debug message
         #endif
-        if (cnl == 3) {
+        if (cnl == 3) { // cnl 3 => switch, cnl 4 => wechselschalter
           if (curStat == 3)
           {
             hm.ld.set(1);
