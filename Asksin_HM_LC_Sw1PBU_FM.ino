@@ -97,8 +97,8 @@ void setup() {
 
 	// configure some buttons - config(tIdx, tPin, tTimeOutShortDbl, tLongKeyTime, tTimeOutLongDdbl, tCallBack)
 	bk[0].config(0,15,0,5000,5000,buttonState);									// button 0 for channel 0 for send pairing string, and double press for reseting device config
-	bk[1].config(1,14,0,400,5000,buttonState); // channel 1 to 2 as push button
-	bk[2].config(2,8,0,400,5000,buttonState);
+	bk[1].config(1,14,0,1000,5000,buttonState); // channel 1 to 2 as push button
+	bk[2].config(2,8,0,1000,5000,buttonState);
 
 	// init relay stuff
         pinMode(pinRelay, OUTPUT);
@@ -141,7 +141,7 @@ void loop() {
 		lastCurrentSenseTime = millis();
 
                 // If pin is currently high (and has not been low during the period)
-                if (currentImpulsStart != 0 && micros() - currentImpulsStart > minImpulsLength)
+                if (currentImpulsStart != 0 && ((unsigned long) (micros() - currentImpulsStart)) > minImpulsLength)
                 {
                   currentSense = true;
                 }
