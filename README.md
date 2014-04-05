@@ -11,6 +11,13 @@ Hardware:
 * Controller runs at 3,3V at 8MHz. According to the datasheet up to 5.5V is safe.
 * Relay
 * Current Sensor: MP13 + MP29 (PA0/ADC0 at ATmega) Shunt amplified by TLC272 OpAmp (http://www.ti.com/lit/ds/symlink/tlc272.pdf)
+* Fuses:
+```
+ avrdude: Device signature = 0x1e9609
+ avrdude: safemode: lfuse reads as FF
+ avrdude: safemode: hfuse reads as DA
+ avrdude: safemode: efuse reads as FD
+```
 
 To flash the device you need to solder the colored wires to the ISP port. For debugging you may want the thin wires to the UART port:
 ![](https://raw.github.com/jabdoa2/Asksin_HM_LC_Sw1PBU_FM/master/hardware/images/isp.jpg "HM-LC-Sw1PBU-FM with connected UART (thin wires) and ISP (colored wired)")
