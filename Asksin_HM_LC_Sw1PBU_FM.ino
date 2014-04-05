@@ -169,7 +169,7 @@ void currentImpuls()
   if (actualCurrentPin) { // Impuls start
     currentImpulsStart = micros();
   } else { // Impuls end
-    uint16_t impulsLength = micros() - currentImpulsStart;
+    unsigned long impulsLength = micros() - currentImpulsStart;
     lastImpulsLength += impulsLength;
     if (impulsLength > minImpulsLength) {
       currentSense = true;
