@@ -31,8 +31,7 @@ InternalTimer(gettimeofday()+10,"registerHM_LC_Sw1PBU_FM_CustomFW","nothing", 0)
 
 sub CUL_HM_ParseremoteAndSwitch($$$$$$) {
   my($mFlg,$mTp,$src,$dst,$p,$target) = @_;
-  my @entities;
-  my @event;
+  my @evtEt = ();
 
 #  Log 1,"General  entering with $mFlg,$mTp,$src,$dst,$p";
 
@@ -50,27 +49,24 @@ sub CUL_HM_ParseremoteAndSwitch($$$$$$) {
 
     my $vs = ($val==100 ? "on":($val==0 ? "off":"$val %")); # user string...
 
-    push @event,"level:$val %";
-    push @event,"pct:$val"; # duplicate to level - necessary for "slider"
-    push @event,"deviceMsg:$vs$target" if($chn ne "00");
-    push @event,"state:".$vs;
+    push @evtEt,[$shash,1,"level:$val %"];
+    push @evtEt,[$shash,1,"pct:$val";];# duplicate to level - necessary for "slider"
+    push @evtEt,[$shash,1,"deviceMsg:$vs$target"] if($chn ne "00");
+    push @evtEt,[$shash,1,"state:".$vs];
     my $action; #determine action
-    push @event, "timedOn:".(($err&0x40)?"running":"off");
-    push @entities,CUL_HM_UpdtReadBulk($shash,1,@event);
-
+    push @evtEt,[$shash,1,"timedOn:".(($err&0x40)?"running":"off")];
   }
   elsif ($mTp eq "5E" ||$mTp eq "5F" ) {  #    POWER_EVENT_CYCLIC
 
     my $shash = $modules{CUL_HM}{defptr}{$src."04"}
                              if($modules{CUL_HM}{defptr}{$src."04"});
     my ($eCnt,$P,$I,$U,$F) = unpack 'A6A6A4A4A2',$p;
-#    push @event, "energy:"   .(hex($eCnt)&0x7fffff)/10;# 0.0  ..838860.7  Wh
-#    push @event, "power:"    . hex($P   )/100;         # 0.0  ..167772.15 W
-    push @event, "current:"  . hex($I   )/1;           # 0.0  ..65535.0   mA
-#    push @event, "voltage:"  . hex($U   )/10;          # 0.0  ..6553.5    mV
-#    push @event, "frequency:".(hex($F   )/100+50);      # 48.72..51.27     Hz
-#    push @event, "boot:"     .((hex($eCnt)&0x800000)?"on":"off");
-    push @entities,CUL_HM_UpdtReadBulk($shash,1,@event);
+#    push @evtEt,[$shash,1,"energy:"   .(hex($eCnt)&0x7fffff)/10];# 0.0  ..167772.15 W
+#    push @evtEt,[$shash,1,"power:"    . hex($P   )/100];
+    push @evtEt,[$shash,1,"current:"  . hex($I   )/1]# 0.0  ..65535.0   mA;
+#    push @evtEt,[$shash,1,"voltage:"  . hex($U   )/10] # 0.0  ..6553.5    mV;
+#    push @evtEt,[$shash,1,"frequency:".(hex($F   )/100+50)] # 48.72..51.27     Hz;
+#    push @evtEt,[$shash,1,"boot:"     .((hex($eCnt)&0x800000)?"on":"off");];
   }
   elsif($mTp =~ m/^4./ && $p =~ m/^(..)(..)/) {
     my $shash = CUL_HM_id2Hash($src);
@@ -105,18 +101,15 @@ sub CUL_HM_ParseremoteAndSwitch($$$$$$) {
       $trigType = "Short";
     }
     $shash->{helper}{addVal} = $chn;   #store to handle changesFread
-    push @entities,CUL_HM_UpdtReadBulk($chnHash,1,
-                                           ,"state:".$state.$target
-                                           ,"trigger:".$trigType."_".$bno);
-    push @event,"battery:". (($chn&0x80)?"low":"ok");
-    push @event,"state:$btnName $state$target";
-
-    push @entities,CUL_HM_UpdtReadBulk($shash,1,@event);
+    push @evtEt,[$chnHash,1,"state:".$state.$target];
+    push @evtEt,[$chnHash,1,"trigger:".$trigType."_".$bno];
+    push @evtEt,[$shash,1,"battery:". (($chn&0x80)?"low":"ok")];
+    push @evtEt,[$shash,1,"state:$btnName $state$target"];
   } else {
     Log(1, "Asksin_HM_LC_Sw1PBU_FM_CustomFW received unknown message: $mFlg,$mTp,$src,$dst,$p");
   }
 
-  return @entities;
+  return @evtEt;
 }
 
 
