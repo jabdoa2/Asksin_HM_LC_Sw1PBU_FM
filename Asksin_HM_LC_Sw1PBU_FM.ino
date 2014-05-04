@@ -56,12 +56,12 @@ unsigned long lastCurrentInfoSentTime = 0;
 unsigned long lastCurrentSenseTime = 0;
 unsigned long currentImpulsStart = 0;
 unsigned long lastImpulsLength = 0;
-boolean currentSense = false;
+unsigned long lastCurrentSenseImpulsLength = 0;
 boolean lastCurrentSense = false;
 boolean lastCurrentPin = false;
 const uint8_t pinCurrent = 31;
 const uint8_t pinRelay = 12;
-const uint16_t minImpulsLength = 500;
+const unsigned long minImpulsLength = 500;
 //const uint8_t sendSensorIntervalSec = 150;
 const uint8_t sendSensorIntervalSec = 30;
 
@@ -137,14 +137,14 @@ void loop() {
                 hm.sendSensorData(0, 0, lastImpulsLength/(50*sendSensorIntervalSec), 0, 0); // send message
                 lastImpulsLength = 0;
 	}
-	if (millis() - lastCurrentSenseTime > 100) {
+	if (millis() - lastCurrentSenseTime > 200) {
+                cli();
 		lastCurrentSenseTime = millis();
 
-                // If pin is currently high (and has not been low during the period)
-                if (currentImpulsStart != 0 && ((unsigned long) (micros() - currentImpulsStart)) > minImpulsLength)
-                {
-                  currentSense = true;
-                }
+                // Calculate current sense boolean: 200ms/50Hz = 10 Impulses
+                boolean currentSense = lastCurrentSenseImpulsLength > (10 * minImpulsLength);
+                lastCurrentSenseImpulsLength = 0;
+
                 // Act on changes
                 if (currentSense != lastCurrentSense)
                 {
@@ -153,7 +153,7 @@ void loop() {
 //                  hm.sendInfoActuatorStatus(4,currentSense?0xC8:0x00,0);
                   lastCurrentSense = currentSense;
                 }
-                currentSense = false;
+                sei();
 	}
 }
 
@@ -171,9 +171,7 @@ void currentImpuls()
   } else { // Impuls end
     unsigned long impulsLength = micros() - currentImpulsStart;
     lastImpulsLength += impulsLength;
-    if (impulsLength > minImpulsLength) {
-      currentSense = true;
-    }
+    lastCurrentSenseImpulsLength += impulsLength;
     currentImpulsStart = 0;
   }
   sei();
