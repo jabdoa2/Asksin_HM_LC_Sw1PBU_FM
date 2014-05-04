@@ -50,7 +50,7 @@ sub CUL_HM_ParseremoteAndSwitch($$$$$$) {
     my $vs = ($val==100 ? "on":($val==0 ? "off":"$val %")); # user string...
 
     push @evtEt,[$shash,1,"level:$val %"];
-    push @evtEt,[$shash,1,"pct:$val";];# duplicate to level - necessary for "slider"
+    push @evtEt,[$shash,1,"pct:$val"];# duplicate to level - necessary for "slider"
     push @evtEt,[$shash,1,"deviceMsg:$vs$target"] if($chn ne "00");
     push @evtEt,[$shash,1,"state:".$vs];
     my $action; #determine action
