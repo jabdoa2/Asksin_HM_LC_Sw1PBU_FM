@@ -55,7 +55,7 @@ RL rl[2];																		// declare one inxtStatnce of relay class
 unsigned long lastCurrentInfoSentTime = 0;
 unsigned long lastCurrentSenseTime = 0;
 unsigned long currentImpulsStart = 0;
-unsigned long lastImpulsLength = 0;
+unsigned long lastSensorImpulsLength = 0;
 unsigned long lastCurrentSenseImpulsLength = 0;
 boolean lastCurrentSense = false;
 boolean lastCurrentPin = false;
@@ -134,8 +134,8 @@ void loop() {
 
 	if (millis() - lastCurrentInfoSentTime > sendSensorIntervalSec * 1000) {
 		lastCurrentInfoSentTime = millis();
-                hm.sendSensorData(0, 0, lastImpulsLength/(50*sendSensorIntervalSec), 0, 0); // send message
-                lastImpulsLength = 0;
+                hm.sendSensorData(0, 0, lastSensorImpulsLength/(50*sendSensorIntervalSec), 0, 0); // send message
+                lastSensorImpulsLength = 0;
 	}
 	if (millis() - lastCurrentSenseTime > 200) {
                 cli();
@@ -170,7 +170,7 @@ void currentImpuls()
     currentImpulsStart = micros();
   } else { // Impuls end
     unsigned long impulsLength = micros() - currentImpulsStart;
-    lastImpulsLength += impulsLength;
+    lastSensorImpulsLength += impulsLength;
     lastCurrentSenseImpulsLength += impulsLength;
     currentImpulsStart = 0;
   }
