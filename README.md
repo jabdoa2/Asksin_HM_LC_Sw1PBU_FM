@@ -54,7 +54,15 @@ Instructions Software:
 * Open Sketch "Asksin\_HM\_LC\_Sw1PBU\_FM"
 * Select Tools->Board->"Jabduino ATmega644A"
 * Change HMID in Register.h to the original HMID of your device
-* Compile and Upload with programmer (did not try the arduino bootloader)
+* Compile
+
+There are two ways to upload the firmware:
+* Version 1: Upload with programmer (works with or without arduino bootloader)
+* Version 2: Flash OTA Bootloader and flash firmware over the air
+    * OTA Bootloader can be found here: https://github.com/jabdoa2/Asksin_OTA_Bootloader
+    * You can use any Homematic OTA Flasher (hmland flash-ota, eq3 Homematic Windows USB Updater, CCU2 or FHEM)
+
+Version 1 is good for testing while developing with attached UART. However, before installing the device into the wall, I would recommend to switch to version 2 to be able to update firmware while mounted in the wall.
 
 Features ([x] working [p] partial/not finished [ ] not working):
 - [x] Pairing of central via Register.h
@@ -82,9 +90,11 @@ Features ([x] working [p] partial/not finished [ ] not working):
 - [x] Virtual Actor channel for double-throw switch/Wechselschalter (channel 4)
 - [x] Set actor channel depending on current input
 - [x] Toggeling relay (channel 3) when toggeling virtual channel
+- [x] Load defaults to registers when peering (for both actor, remote, single and dual peerings)
 - [ ] Interpreting current sensor values (60W ~= 6k/5W LED ~= 3k)
 - [ ] Sending 41 Messages with current value to other actors
-- [x] Load defaults to registers when peering (for both actor, remote, single and dual peerings)
 
 Using device in FHEM:
 Copy fhem/99\_Asksin\_HM\_LC\_Sw1PBU\_FM\_CustomFW.pm to FHEM/ in your FHEM installation and restart.
+
+If you have feedback or problems you can ask questions or leave comments in this thread in FHEM Forum (forum is mostly german but you may also write in english): http://forum.fhem.de/index.php/topic,18071.0.html / http://forum.fhem.de/index.php/board,22.0.html
