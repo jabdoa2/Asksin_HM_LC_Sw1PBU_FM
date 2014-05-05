@@ -61,9 +61,8 @@ boolean lastCurrentSense = false;
 boolean lastCurrentPin = false;
 const uint8_t pinCurrent = 31;
 const uint8_t pinRelay = 12;
-const unsigned long minImpulsLength = 500;
-//const uint8_t sendSensorIntervalSec = 150;
-const uint8_t sendSensorIntervalSec = 30;
+const unsigned long minImpulsLength = 5000;
+const uint8_t sendSensorIntervalSec = 150;
 
 ISR(PCINT0_vect) {
 	currentImpuls();
@@ -137,12 +136,12 @@ void loop() {
                 hm.sendSensorData(0, 0, lastSensorImpulsLength/(50*sendSensorIntervalSec), 0, 0); // send message
                 lastSensorImpulsLength = 0;
 	}
-	if (millis() - lastCurrentSenseTime > 200) {
+	if (millis() - lastCurrentSenseTime > 500) {
                 cli();
 		lastCurrentSenseTime = millis();
 
-                // Calculate current sense boolean: 200ms/50Hz = 10 Impulses
-                boolean currentSense = lastCurrentSenseImpulsLength > (10 * minImpulsLength);
+                // Calculate current sense boolean: 500ms*50Hz = 25 Impulses
+                boolean currentSense = lastCurrentSenseImpulsLength > (25 * minImpulsLength);
                 lastCurrentSenseImpulsLength = 0;
 
                 // Act on changes
