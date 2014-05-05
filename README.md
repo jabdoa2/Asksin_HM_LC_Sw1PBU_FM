@@ -25,7 +25,7 @@ To flash the device you need to solder the colored wires to the ISP port. For de
 More images can be found in the hardware/images/ subfolder.
 
 Warnings:
-* DO NOT CONNECT THE BOARD to 230V. This will be dangous, since there is no voltage regulator! All ports including uart and SPI may have 230V potential to ground.
+* DO NOT CONNECT THE BOARD to 230V. This will be dangerous, since there is no voltage regulator! All ports including uart and SPI may have 230V potential to ground.
 * YOU DO THIS ON YOUR OWN RISK
 * This will probably void your warrenty. The device most probably will loose its CE certification.
 * There is no way back to the original firmware since we do not have any copy of it
