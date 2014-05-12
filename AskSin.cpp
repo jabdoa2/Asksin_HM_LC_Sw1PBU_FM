@@ -742,6 +742,11 @@ void HM::recv_poll(void) {														// handles the receive objects
 		recv_PairEvent();
 	}
 
+	if((recv.forUs) && (recv_isMsg) && (recv_msgTp == 0xCB)) {
+		recv_UpdateEvent();
+	}
+
+
 	if((recv.forUs) && (recv_isMsg) && (recv_msgTp >= 0x12)) {
 		recv_PeerEvent();
 	}
@@ -1122,6 +1127,13 @@ void HM::recv_ConfigStatusReq(void) {
 	// send appropriate answer ---------------------------------------------
 	// answer will be send from client function; if client function was not found in jump table, we send here an empty status
 	if (!ret) hm.sendInfoActuatorStatus(recv_payLoad[0], 0xff, 0);
+}
+/**
+ * We will reboot the controller and start the update via the bootloader
+ */
+void HM::recv_UpdateEvent(void) {
+	wdt_enable(WDTO_30MS);
+	while(1) {}
 }
 void HM::recv_PeerEvent(void) {
 	// description --------------------------------------------------------

@@ -305,6 +305,7 @@ class HM {
 	void recv_ConfigSerialReq(void);											// OK, 01, 09
 	void recv_Pair_Serial(void);												// OK, 01, 0A
 	void recv_ConfigStatusReq(void);											// 01, 0E
+	void recv_UpdateEvent(void);
 	void recv_PeerEvent(void);													// OK, 40
 	void recv_PairEvent(void);													// 11
 	uint8_t recv_Jump(uint8_t tCnl);											// check against jump table to call function in user area, 1 if call was done, 0 if not
