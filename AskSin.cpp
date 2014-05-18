@@ -551,23 +551,19 @@ void HM::sendPeerREMOTE(uint8_t button, uint8_t longPress, uint8_t lowBat) {
 	//	   LONG     => '00,2,$val=(hex($val)&0x40)?1:0',
 	//	   LOWBAT   => '00,2,$val=(hex($val)&0x80)?1:0',
 	//	   COUNTER  => "02,2", } },
-	if (button > maxChannel) return;											// channel out of range, do nothing
-	if (pevt.act) {																// already sending an event
-		if (longPress == 2) pevt.eol = 1;										// someone would send an long key release message
-		return;	
-	}
+	if (button > maxChannel) return; // channel out of range, do nothing
 	
-	if (doesListExist(button,4) == 0) {											// check if a list4 exist, otherwise leave
+	if (doesListExist(button,4) == 0) { // check if a list4 exist, otherwise leave
 		//Serial << "sendPeerREMOTE failed\n";
 		return;
 	}
 
 	// set variables in struct and make send_peer_poll active
 	pevt.cnl = button;															// peer database channel
-	pevt.type = 0x40;															// message type
-	pevt.mFlg = (uint8_t)((longPress == 1)?0x84:0xA4);							// no ACK needed while long key press is send
-	pevt.data[0] = button | ((longPress)?1:0) << 6 | lowBat << 7;				// construct message
-	pevt.data[1] = pevt.mCnt[pevt.cnl-1]++;										// increase event counter, important for switch event
+	pevt.type = 0x40; // message type
+	pevt.mFlg = (uint8_t)((longPress == 1)?0x80:0xA0); // no ACK needed while long key press is send
+	pevt.data[0] = button | ((longPress)?1:0) << 6 | lowBat << 7; // construct message
+	pevt.data[1] = pevt.mCnt[pevt.cnl-1]++;	// increase event counter, important for switch event
 	pevt.len = 2;																// 2 bytes payload
 	
 	pevt.act = 1;																// active, 1 = yes, 0 = no
@@ -846,15 +842,8 @@ void HM::send_peer_poll(void) {
 		// check if a message was send to at least on device, if not send to master
 		if (pevt.sta == 0) send_prep(send.mCnt++,(bitRead(pevt.mFlg,5)?0xA2:0x82),pevt.type,regDev.pairCentral,pevt.data,pevt.len);
 		
-		if ((!bitRead(pevt.mFlg,5)) && (pevt.eol)) {							// seems to be the end of a long key press series
-			pevt.idx = 0;														// start again from 0
-			pevt.sta = 0;														// clear status message flag
-			bitSet(pevt.mFlg,5);												// set ACK flag
-			//Serial << "hab dich\n";
-		} else {
-			pevt.idx = 0; pevt.sta = 0;	pevt.eol = 0; pevt.act = 0;				// clear struct object, no need to jump in again
-			return;
-		}
+		pevt.idx = 0; pevt.sta = 0; pevt.act = 0;				// clear struct object, no need to jump in again
+		return;
 		
 	}
 	

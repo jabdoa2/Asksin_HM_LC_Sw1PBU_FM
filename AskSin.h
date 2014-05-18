@@ -269,7 +269,6 @@ class HM {
 		uint8_t sta;															// status message send; 0 no, 1 yes
 		uint8_t mFlg;															// message flag
 		uint8_t mCnt[maxChannel];												// message counter per channel
-		uint8_t eol;															// end of long indicator
 		uint8_t act;															// active, 1 = yes, 0 = no
 	} pevt;
 

@@ -95,9 +95,9 @@ void setup() {
 	hm.setConfigEvent();														// reread config 
 
 	// configure some buttons - config(tIdx, tPin, tTimeOutShortDbl, tLongKeyTime, tTimeOutLongDdbl, tCallBack)
-	bk[0].config(0,15,0,5000,5000,buttonState);									// button 0 for channel 0 for send pairing string, and double press for reseting device config
-	bk[1].config(1,14,0,1000,5000,buttonState); // channel 1 to 2 as push button
-	bk[2].config(2,8,0,1000,5000,buttonState);
+	bk[0].config(0,15,0,5000,15000,buttonState);									// button 0 for channel 0 for send pairing string, and double press for reseting device config
+	bk[1].config(1,14,500,1000,5000,buttonState); // channel 1 to 2 as push button
+	bk[2].config(2,8,500,1000,5000,buttonState);
 
 	// init relay stuff
         pinMode(pinRelay, OUTPUT);
