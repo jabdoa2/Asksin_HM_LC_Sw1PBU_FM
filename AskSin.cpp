@@ -563,11 +563,15 @@ void HM::sendPeerREMOTE(uint8_t button, uint8_t longPress, uint8_t lowBat) {
 	pevt.type = 0x40; // message type
 	pevt.mFlg = (uint8_t)((longPress == 1)?0x80:0xA0); // no ACK needed while long key press is send
 	pevt.data[0] = button | ((longPress)?1:0) << 6 | lowBat << 7; // construct message
-	pevt.data[1] = pevt.mCnt[pevt.cnl-1]++;	// increase event counter, important for switch event
-	pevt.len = 2;																// 2 bytes payload
+	pevt.data[1] = pevt.mCnt[pevt.cnl-1];
+	pevt.len = 2; // 2 bytes payload
 	
-	pevt.act = 1;																// active, 1 = yes, 0 = no
-	ld.shortBlink();															// short led blink
+	pevt.act = 1; // active, 1 = yes, 0 = no
+	ld.shortBlink(); // short led blink
+
+        if (longPress != 1) {
+                ++pevt.mCnt[pevt.cnl-1]; // increase event counter except for long press (until long press end)
+        }
 }
 void HM::sendPeerRAW(uint8_t cnl, uint8_t type, uint8_t *data, uint8_t len) {
 	// validate the input, and fill the respective variables in the struct
