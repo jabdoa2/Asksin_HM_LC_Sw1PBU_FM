@@ -75,8 +75,8 @@ void CC::init(void) {															// initialize CC1101
 	Serial << '1';
 	#endif
 
-	for (uint8_t i=0; i<sizeof(initVal); i++) {									// write init value to TRX868
-		writeReg(pgm_read_byte(&initVal[i++]), pgm_read_byte(&initVal[i]));	
+	for (uint8_t i=0; i<sizeof(initVal); i += 2) {									// write init value to TRX868
+		writeReg(pgm_read_byte(&initVal[i]), pgm_read_byte(&initVal[i + 1]));	
 	}
 	
 	#if defined(CC_DBG)
