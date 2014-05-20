@@ -742,7 +742,7 @@ void HM::recv_poll(void) {														// handles the receive objects
 		recv_PairEvent();
 	}
 
-	if((recv.forUs) && (recv_isMsg) && (recv_msgTp == 0xCB)) {
+        if((recv.forUs) && (recv.data[2] == 0x30) && (recv_msgTp == 0x11)) {
 		recv_UpdateEvent();
 	}
 
