@@ -1,5 +1,5 @@
 //- Software config --------------------------------------------------------------------------------------------------------
-#define USE_SERIAL
+//#define USE_SERIAL
 
 #if defined(USE_SERIAL)
 //#define CC_DBG															// debug messages of the CC module, ~0.2k program space
