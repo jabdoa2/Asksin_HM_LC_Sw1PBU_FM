@@ -93,7 +93,7 @@ sub CUL_HM_ParseremoteAndSwitch($$$$$$) {
         $shash->{BNOCNT}=0; # message counter reest
       }
       $shash->{BNOCNT}+=1;
-      $state .= "Long" .($mFlg eq "A0" ? "Release" : "").
+      $state .= "Long" .(hex($mFlg) & 0x20 ? "Release" : "").
                 " ".$shash->{BNOCNT}."-".$mFlg.$mTp."-";
       $trigType = "Long";
     }
