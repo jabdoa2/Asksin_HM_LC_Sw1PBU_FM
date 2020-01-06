@@ -5,30 +5,18 @@ use warnings;
 use POSIX;
 use Switch;
 
-sub
-Asksin_HM_LC_Sw1PBU_FM_CustomFW_Initialize($$)
-{
-  my ($hash) = @_;
-}
-
-sub
-registerHM_LC_Sw1PBU_FM_CustomFW()
-{
-  {$HMConfig::culHmModel{"F0A9"} = {name=>"HM-LC-Sw1PBU-FM-CustomFW",st=>'remoteAndSwitch',cyc=>'',rxt=>'',lst=>'1,3:3p.4p,4:1p.2p',chn=>"Btn:1:2,Sw:3:4"}}
-  {$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW00"}{fwUpdate} ="<filename>"};
-  {$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW01"} = $HMConfig::culHmSubTypeSets{"THSensor"}};
-  {$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW02"} = $HMConfig::culHmSubTypeSets{"THSensor"}};
-  {$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW03"} = $HMConfig::culHmSubTypeSets{"switch"}};
-  {$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW04"} = $HMConfig::culHmSubTypeSets{"switch"}};
-  {$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW01"}  = $HMConfig::culHmRegType{remote}};
-  {$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW02"}  = $HMConfig::culHmRegType{remote}};
-  {$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW03"}  = $HMConfig::culHmRegType{switch}};
-  {$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW04"}  = $HMConfig::culHmRegType{switch}};
-  #Log(1, "Registered F0A9");
-}
-
-#Log(1, "Loaded CustomFS");
-InternalTimer(gettimeofday()+10,"registerHM_LC_Sw1PBU_FM_CustomFW","nothing", 0);
+#define device
+{$HMConfig::culHmModel{"F0A9"} = {name=>"HM-LC-Sw1PBU-FM-CustomFW",st=>'remoteAndSwitch',cyc=>'',rxt=>'',lst=>'1,3:3p.4p,4:1p.2p',chn=>"Btn:1:2,Sw:3:4"}}
+{$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW00"}{fwUpdate} ="<filename>"};
+{$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW01"} = $HMConfig::culHmSubTypeSets{"THSensor"}};
+{$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW02"} = $HMConfig::culHmSubTypeSets{"THSensor"}};
+{$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW03"} = $HMConfig::culHmSubTypeSets{"switch"}};
+{$HMConfig::culHmChanSets{"HM-LC-Sw1PBU-FM-CustomFW04"} = $HMConfig::culHmSubTypeSets{"switch"}};
+{$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW01"}  = $HMConfig::culHmRegType{remote}};
+{$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW02"}  = $HMConfig::culHmRegType{remote}};
+{$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW03"}  = $HMConfig::culHmRegType{switch}};
+{$HMConfig::culHmRegChan{"HM-LC-Sw1PBU-FM-CustomFW04"}  = $HMConfig::culHmRegType{switch}};
+#Log(1, "Registered F0A9");
 
 sub CUL_HM_ParseremoteAndSwitch($$$$$$) {
   my($mFlg,$mTp,$src,$dst,$p,$target) = @_;
